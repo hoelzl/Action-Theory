@@ -97,6 +97,13 @@ etc. for this context."))
   (:documentation
    "Assign NEW-VALUE as the new value of LOOKUP-FUNCTOR for NAME and ARITY."))
 
+(defgeneric variables (context)
+  (:documentation
+   "Return a list of all variables in CONTEXT and its enclosing contexts.")
+  (:method (context)
+    (declare (ignore context))
+    '()))
+
 (defgeneric lookup-variable (name sort context &optional create?)
   (:documentation
    "Return the variable NAME with sort SORT for the given CONTEXT if it

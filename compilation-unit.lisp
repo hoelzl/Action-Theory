@@ -124,6 +124,12 @@
   (:documentation
    "A single compilation unit."))
 
+
+(defmethod print-object ((self compilation-unit) stream)
+  (print-unreadable-object (self stream :type t :identity t)
+    (format stream "Vars: ~:W"
+            (mapcar #'unique-name (variables self)))))
+
 #+(or)
 (defmethod shared-initialize :after ((self compilation-unit) slot-names &key)
   (declare (ignore slot-names))
@@ -195,6 +201,15 @@
                     :initform '()))
   (:documentation
    "A temporary context for forms that bind variables."))
+
+(defmethod variables ((self local-context))
+  (append (mapcar #'cdr (local-variables self))
+          (variables (enclosing-context self))))
+
+(defmethod print-object ((self local-context) stream)
+  (print-unreadable-object (self stream :type t :identity t)
+    (format stream "Vars: ~:W"
+            (mapcar #'unique-name (variables self)))))
 
 (defmethod lookup-variable (name sort (context local-context) &optional (create? t))
   (let ((local-binding (assoc name (local-variables context))))
