@@ -151,14 +151,12 @@
                         t)))
     (values real-name sort-name)))
 
-(defun make-unique-variable-name (var context)
+(defun make-unique-variable-name (var-name sort-name context)
   (declare (ignore context))
-  (multiple-value-bind (var-name sort-name)
-      (destructure-variable-name (name var))
-    (make-symbol (format nil "?~:[VAR~;~:*~A~]~A.~A"
-                         var-name
-                         (incf *unique-variable-counter*)
-                         sort-name))))
+  (make-symbol (format nil "?~:[VAR~;~:*~A~]~A.~A"
+                       var-name
+                       (incf *unique-variable-counter*)
+                       sort-name)))
 
 (defmethod declared-sort ((var variable-term) (context abstract-context))
   (declare (ignore context))
@@ -167,7 +165,7 @@
 (defmethod (setf declared-sort)
     (sort (var variable-term) (context abstract-context))
   (setf (slot-value var 'declared-sort) sort)
-  (setf (unique-name var) (make-unique-variable-name var context)))
+  (setf (unique-name var) (make-unique-variable-name var sort context)))
         
 
 (define-interning-make-instance variable name sort)
@@ -181,14 +179,14 @@
   (assert (typep name 'symbol) (name)
           "~A cannot denote a variable (it is not a symbol)." name)
   (let ((var (make-instance 'variable-term
-               :name (destructure-variable-name name)
+               :name name
                :sort sort
                :context context
                :source name
                :intern intern :is-bound-p is-bound-p
                :global global)))
     (setf (unique-name var)
-          (make-unique-variable-name var context))
+          (make-unique-variable-name name sort context))
     var))
 
 (defun make-anonymous-variable-term (sort context &key (is-bound-p nil) (global nil))
