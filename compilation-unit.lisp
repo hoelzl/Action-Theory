@@ -93,6 +93,10 @@
     :accessor known-operators :initarg :known-operators
     :initform (default-known-operators)
     :documentation "Special operators for this compilation unit.")
+   (sorts
+    :accessor sorts :initarg :sorts
+    :initform (make-hash-table)
+    :documentation "Hash table mapping sort names to definitions.")
    (primitive-actions
     :accessor primitive-actions :initarg :primitive-actions
     :initform (make-hash-table)
@@ -238,6 +242,8 @@
   (primitive-actions (context))
   ((setf primitive-actions) (new-value context)
                             :new-value-type list)
+  (sorts (context))
+  ((setf sorts) (new-value context))
   (fluents (context))
   ((setf fluents) (new-value context))
   (the-empty-program-term (context))
