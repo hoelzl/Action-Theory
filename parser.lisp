@@ -31,8 +31,8 @@
     (declare (ignore term context))
     :do-nothing)
 
-  (:method :after ((term unique-term-mixin) context)
-    (add-unique-term term context))
+  (:method :after ((term term-with-unique-name-mixin) context)
+    (add-to-terms-with-unique-names term context))
 
   (:method ((term constant-declaration-term) context)
     (declare-sort-for-constant term context))
@@ -66,18 +66,27 @@
     (declare-operator-sort (name declaration)
                            (declared-sort declaration context)
                            context)
+    (apply #'define-primitive-action (name declaration)
+           (signature declaration)
+           (keywords declaration))
     (declare-primitive-action (name declaration) context))
 
   (:method ((declaration functional-fluent-declaration-term) context)
     (declare-operator-sort (name declaration)
                            (declared-sort declaration context)
                            context)
+    (apply #'define-functional-fluent (name declaration)
+           (signature declaration)
+           (keywords declaration))
     (declare-functional-fluent (name declaration) context))
 
   (:method ((declaration relational-fluent-declaration-term) context)
     (declare-operator-sort (name declaration)
                            (declared-sort declaration context)
                            context)
+    (apply #'define-relational-fluent (name declaration)
+           (signature declaration)
+           (keywords declaration))
     (declare-relational-fluent (name declaration) context)))
 
 

@@ -29,11 +29,14 @@
     (to-sexpr-maybe-error :unreadable-term))
 
   (:method ((term variable-term) &key as-list include-global)
-    (if as-list
-        `(,(unique-name term) :sort ,(slot-value term 'declared-sort)
-          ,@(when (and include-global (global term))
-              `(:global ,(global term))))
-        (unique-name term)))
+    (let ((unique-name (if (slot-boundp term 'unique-name)
+                           (slot-value term 'unique-name)
+                           (name term))))
+      (if as-list
+          `(,unique-name :sort ,(slot-value term 'declared-sort)
+            ,@(when (and include-global (global term))
+                `(:global ,(global term))))
+          unique-name)))
 
   (:method ((term number-term) &key as-list include-global)
     (declare (ignore as-list include-global))
@@ -139,7 +142,7 @@
 
 
 (defmethod print-object ((self term) stream)
-  (print-unreadable-object (self stream :type t)
+  (print-unreadable-object (self stream :type t :identity t)
     (format stream "~:W" (to-sexpr self))))
 
 (defmethod print-object ((term variable-term) stream)
@@ -465,7 +468,7 @@
 
 (defgeneric make-unique-names-axioms (compilation-context)
   (:method ((context compilation-context))
-    (let* ((terms (unique-terms context))
+    (let* ((terms (terms-with-unique-names context))
            (length (length terms)))
       (iterate outer
         (for i from 0 below (1- length))
@@ -506,9 +509,11 @@
   (:method ((declaration sort-declaration-term)
             &key context rewrite-too supported)
     (declare (ignore rewrite-too supported))
-    (apply #'snark:declare-sort
-           (declared-sort declaration context)
-           (keywords declaration))
+    (let ((sort-name (declared-sort declaration context)))
+      (unless (snark::sort-name? sort-name)
+        (apply #'snark:declare-sort
+               sort-name
+               (keywords declaration))))
     :declare-sort)
   
   (:method ((declaration subsort-declaration-term)

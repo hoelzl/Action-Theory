@@ -60,7 +60,7 @@
     (when example
       (full-source-code (find-example example))))
   (:method ((example terms-example))
-    (append (funcall (set-up-function example))
+        (append (funcall (set-up-function example))
             (list (term example)))))
 
 (defvar *terms-test-variables*

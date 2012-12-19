@@ -90,12 +90,12 @@ etc. for this context."))
         (when *warn-for-null-operator-sorts*
           (warn "No sort declaration for operator ~A." operator)))))
 
-(defgeneric unique-terms (context)
+(defgeneric terms-with-unique-names (context)
   (:documentation
    "Returns a sequence containing all terms in CONTEXT for which unique names
    axioms should be generated."))
 
-(defgeneric add-unique-term (term context)
+(defgeneric add-to-terms-with-unique-names (term context)
   (:documentation
    "Adds a unique TERM to CONTEXT.  Has no effect if TERM is already a unique
    term for context."))
@@ -130,6 +130,36 @@ etc. for this context."))
   (:documentation
    "Assign NEW-VALUE as the new value of LOOKUP-NUMBER for VALUE."))
 
+(defgeneric known-operators (context)
+  (:documentation
+   "A hash table containing a hash table that maps known operators into their
+   term type (represeted as symbol)."))
+
+;;; TODO: Do we need this?  Should we have it?  What should its sematics be
+;;; with regards to lexical/dynamic scoping?
+(defgeneric (setf known-operators) (new-value context))
+
+(defgeneric the-empty-program-term (context)
+  (:documentation
+   "Returns an instance of EMPTY-PROGRAM-TERM for CONTEXT that might be interned.")
+
+  (:method ((context compilation-context))
+    (cond ((next-method-p)
+           (call-next-method))
+          (t
+           (warn "Generating uninterned empty program term")
+           (make-instance 'empty-program-term :context context)))))
+
+(defgeneric the-no-operation-term (context)
+  (:documentation
+   "Returns an instance of NO-OPERATION-TERM for CONTEXT that might be interned.")
+
+  (:method ((context compilation-context))
+    (cond ((next-method-p)
+           (call-next-method))
+          (t
+           (warn "Generating uninterned no-operation term.")
+           (make-instance 'no-operation-term :context context)))))
 
 ;;; Methods for Obtaining Primitive Actions
 ;;; ---------------------------------------
@@ -145,35 +175,14 @@ etc. for this context."))
 ;;; TODO: See (setf known-operators).
 (defgeneric (setf primitive-actions) (new-value context))
 
-(define-condition no-definition-for-primitive-action
-    (action-theory-error)
-  ((name :initarg :name)
-   (context :initarg :context))
-  (:report (lambda (condition stream)
-             (with-slots (name context) condition 
-               (format stream "No primitive action ~A in context ~:W"
-                       name context)))))
-
-;;; TODO: We probably should not have both PRIMITIVE-ACTION-DEFINITION
-;;; and LOOKUP-PRIMITIVE-ACTION.
-(defgeneric lookup-primitive-action (name context &optional default)
-  (:documentation
-   "Look up the definition of the primitive action NAME in CONTEXT.")
-  (:method (name (context compilation-context)
-            &optional (default nil default-supplied-p))
-    (or (primitive-action-definition name context nil)
-        (if default-supplied-p
-            default
-            (cerror "Return NIL."
-                    'no-definition-for-primitive-action
-                    :name name :context context)))))
-
-
 ;;; Operator and Context Mixins
 ;;; ===========================
 
 (defgeneric operator (compound-term)
-  (:documentation "The operator of COMPOUND-TERM."))
+  (:documentation "The operator of COMPOUND-TERM.")
+  (:method (term)
+    (declare (ignore term))
+    :unknown-operator))
 
 (defclass operator-mixin ()
   ((operator :accessor operator :initarg :operator
@@ -189,6 +198,4 @@ etc. for this context."))
     :initform (required-argument :context)
     :documentation "The context to which this object belongs."))
   (:documentation "Mixin that provides a CONTEXT slot."))
-
-
 

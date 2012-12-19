@@ -28,6 +28,9 @@
       #:defglobal
       #:gethash*
       #:make-uuid #:make-uuid-symbol
+      ;; Three-valued logic
+      #:boolean3
+      #:and3 #:or3 #:not3
       ;; Macros
       #:extract-arguments-from-lambda-list
       #:defdelegate #:define-delegates
@@ -48,33 +51,35 @@
       #:to-sexpr
       #:negate #:universally-quantify #:existentially-quantify
       #:set-up-snark))
-
+  
   (defvar *action-theory-context-exports*
     '(;; Forward declaration
       #:parse-into-term-representation
       
       #:primitive-action-definition #:context
       #:action-class #:action-precondition
-      #:declare-primitive-action
+      #:declare-primitive-action #:define-primitive-action
       #:fluent-definition
-      #:fluent-class #:fluent-successor-state-axiom
+      #:fluent-class #:fluent-successor-state
       #:relational-fluent-definition
-      #:declare-relational-fluent
+      #:declare-relational-fluent #:define-relational-fluent
       #:functional-fluent-definition
-      #:declare-functional-fluent
+      #:declare-functional-fluent #:define-functional-fluent
       #:arguments-mixin #:arguments
       #:known-term #:is-known-term-p
       
       #:compilation-context
       #:declarations
-      #:unique-terms #:add-unique-term
+      #:declared-operator-sorts #:declare-operator-sort
+      #:terms-with-unique-names #:add-to-terms-with-unique-names
       #:lookup-functor #:lookup-variable #:lookup-number
+      #:known-operators #:default-known-operators
       #:primitive-actions #:default-primitive-action-names
       #:fluents
       #:the-empty-program-term #:the-no-operation-term
       #:context-mixin #:context
       #:singleton-terms-mixin
-      #:unique-terms-mixin
+      #:terms-with-unique-names-mixin
       #:compilation-unit
       #:local-context #:enclosing-context #:local-variables))
   
@@ -138,8 +143,8 @@
       #:declaration-term
       #:keywords-mixin #:keywords
       #:local-context-mixin
-      #:unique-term-mixin
-      #:declared-sort #:successor-state-axiom
+      #:term-with-unique-name-mixin
+      #:declared-sort #:successor-state
       #:named-declaration-term
       #:sort-declaration-term
       #:subsort-declaration-term #:supersort
@@ -215,7 +220,7 @@
       
       #:poss
       
-      #:defaction #:defprimitive
+      #:define-primitive-action #:defaction #:defprimitive
       #:primitive-action #:primact
       #:define-procedure #:defprocedure #:defproc
       #:procedure #:proc
@@ -248,6 +253,6 @@
       #:prove-using-snark-depth-zero
       #:prove-using-snark-closure
       #:prove-using-snark))
-
+  
   ) ; eval-when
 

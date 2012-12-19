@@ -51,19 +51,19 @@
   (:documentation
    "Sets the declared sort of TERM in CONTEXT to SORT."))
 
-(defgeneric successor-state-axiom (term)
+(defgeneric successor-state (term)
   (:documentation
    "Returns the successor state axiom of TERM, or NIL if none exists.")
   (:method ((term keywords-mixin))
-    (getf (keywords term) :successor-state-axiom)))
+    (getf (keywords term) :successor-state)))
 
 ;;; Unique Terms
 ;;; ============
 
-;;; Terms that mix in UNIQUE-TERM-MIXIN get autamatically generated unique
-;;; names axioms.
+;;; We automatically generate unique names axioms for terms that mix in
+;;; TERM-WITH-UNIQUE-NAME-MIXIN.
 
-(defclass unique-term-mixin ()
+(defclass term-with-unique-name-mixin ()
   ()
   (:documentation
    "Mixin for terms for which unique name axioms should be generated."))
@@ -115,6 +115,12 @@
   (:method ((term known-term))
     t))
 
+(defgeneric unique-name (term)
+  (:documentation 
+   "Return a unique name for TERM or raise an error if it has no unique name.")
+  (:method (term)
+    (error "Term ~A has no unique name." term)))
+
 (defclass variable-term (term name-mixin source-mixin)
   ((unique-name
     :accessor unique-name :initarg :unique-name
@@ -135,12 +141,6 @@
 
 (defvar *unique-variable-counter* -1)
 
-(defgeneric unique-name (term)
-  (:documentation 
-   "Return a unique name for TERM or raise an error if it has no unique name.")
-  (:method (term)
-    (error "Term ~A has no unique name." term)))
-
 (defun destructure-variable-name (symbol)
   (let* ((name (symbol-name symbol))
          (package (or (symbol-package symbol) *package*))
@@ -153,10 +153,13 @@
     (values real-name sort-name)))
 
 (defun make-unique-variable-name (var context)
-  (make-symbol (format nil "?~:[VAR~;~:*~A~]~A.~A"
-                       (destructure-variable-name (name var))
-                       (incf *unique-variable-counter*)
-                       (declared-sort var context))))
+  (declare (ignore context))
+  (multiple-value-bind (var-name sort-name)
+      (destructure-variable-name (name var))
+    (make-symbol (format nil "?~:[VAR~;~:*~A~]~A.~A"
+                         var-name
+                         (incf *unique-variable-counter*)
+                         sort-name))))
 
 (defmethod declared-sort ((var variable-term) (context compilation-context))
   (declare (ignore context))
@@ -180,7 +183,8 @@
           "~A cannot denote a variable (it is not a symbol)." name)
   (let ((var (make-instance 'variable-term
                :name (destructure-variable-name name)
-               :sort sort :context context
+               :sort sort
+               :context context
                :source name
                :intern intern :is-bound-p is-bound-p
                :global global)))
@@ -624,8 +628,14 @@ or :ARG3 init-keywords is also provided."
     :source :generated-term))
 
 (defmethod action-precondition ((term primitive-action-term))
-  (let ((definition (lookup-primitive-action (operator term) (context term))))
+  (let ((definition (primitive-action-definition (operator term) (context term))))
     (action-precondition definition)))
+
+(defmethod operator ((term primitive-action-term))
+  (declare (ignore term))
+  :unknown-primitive-action-term)
+
+(define-primitive-action 'no-operation '())
 
 (defclass test-term (unary-term keywords-mixin multi-solution-mixin)
   ()
@@ -846,7 +856,7 @@ or :ARG3 init-keywords is also provided."
   (declare (ignore context))
   (signature term))
 
-(defclass primitive-action-declaration-term (signature-declaration-term unique-term-mixin)
+(defclass primitive-action-declaration-term (signature-declaration-term term-with-unique-name-mixin)
   ()
   (:documentation
    "Term describing the declaration of a primitive action."))
@@ -855,7 +865,7 @@ or :ARG3 init-keywords is also provided."
   (declare (ignore term))
   'declare-primitive-action)
 
-(defclass functional-fluent-declaration-term (signature-declaration-term unique-term-mixin)
+(defclass functional-fluent-declaration-term (signature-declaration-term term-with-unique-name-mixin)
   ()
   (:documentation
    "Term describing the declaration of a functional fluent."))
@@ -902,7 +912,7 @@ or :ARG3 init-keywords is also provided."
                           :source :generated-term)
                         constants)))))))
 
-(defclass unique-constant-declaration-term (constant-declaration-term unique-term-mixin)
+(defclass unique-constant-declaration-term (constant-declaration-term term-with-unique-name-mixin)
   ()
   (:documentation
    "Declares a constant for which unique names axioms should be generated."))
@@ -926,7 +936,7 @@ or :ARG3 init-keywords is also provided."
   'declare-function)
 
 
-(defclass unique-function-declaration-term (function-declaration-term unique-term-mixin)
+(defclass unique-function-declaration-term (function-declaration-term term-with-unique-name-mixin)
   ())
 
 (defmethod operator ((term unique-function-declaration-term))
