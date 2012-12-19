@@ -16,6 +16,7 @@
 	       (:file "utilities")
 	       (:file "macros")
 	       (:file "context")
+	       (:file "prototypes")
 	       (:file "sorts")
 	       (:file "primitive-actions")
 	       (:file "fluents")

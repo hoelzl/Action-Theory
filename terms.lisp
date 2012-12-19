@@ -44,8 +44,7 @@
             "No declared sort for ~:W." term)
     '())
   (:method ((term keywords-mixin) context)
-    (declare (ignore context))
-    (getf (keywords term) :sort)))
+    (lookup-sort (getf (keywords term) :sort) context)))
 
 (defgeneric (setf declared-sort) (sort term context)
   (:documentation

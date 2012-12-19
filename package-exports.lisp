@@ -49,11 +49,11 @@
       #:lookup-primitive-action #:context
       #:action-class #:precondition
       #:declare-primitive-action
-      #:fluent-definition
-      #:fluent-class #:fluent-successor-state-axiom
-      #:relational-fluent-definition
+      #:lookup-fluent
+      #:fluent-class #:successor-state-axiom
+      #:relational-fluent
       #:declare-relational-fluent #:define-relational-fluent
-      #:functional-fluent-definition
+      #:functional-fluent
       #:declare-functional-fluent #:define-functional-fluent
       #:arguments-mixin #:arguments
       #:known-term #:is-known-term-p

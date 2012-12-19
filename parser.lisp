@@ -294,10 +294,10 @@ the new context equals the one in which it was originally parsed."
                             (make-instance 'primitive-action-term
                                            :context context :source exp)
                             nil)))
-                     ((let ((fluent-definition
+                     ((let ((fluent
                               (gethash operator (fluents context) nil)))
-                        (if fluent-definition
-                            (make-instance (fluent-class fluent-definition)
+                        (if fluent
+                            (make-instance 'fluent-term
                                            :context context :source exp)
                             nil)))
                      (t

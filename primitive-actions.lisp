@@ -43,12 +43,8 @@
   (:method (new-value (action-name symbol) (context abstract-context))
     (setf (gethash action-name (primitive-actions context)) new-value)))
 
-(defclass primitive-action (context-mixin)
-  ((prototype
-    :accessor prototype :initarg :prototype
-    :initform (required-argument :prototype)
-    :documentation "The prototype of this action in the form (NAME . ARGS).")
-   (precondition
+(defclass primitive-action (context-mixin prototype-mixin)
+  ((precondition
     :reader precondition :initarg :precondition
     :initform 'true
     :documentation "The (right-hand side of the) precondition for this action.")
@@ -60,17 +56,16 @@
    "The definition of a primitive action."))
 
 (defmethod initialize-instance :after
-    ((self primitive-action) &key context operator precondition)
+    ((self primitive-action) &key context operator precondition prototype)
   (assert context (context)
           "Cannot create a primitive action definition without context.")
   (setf (lookup-primitive-action operator context) self)
-  (when  precondition
-    (let ((variables (rest (prototype self))))
-      (mapc (lambda (var) (parse-variable-term var context))
-            variables)
-      (let ((precondition-term (parse-into-term-representation
-                                precondition context)))
-        (setf (slot-value self 'precondition) precondition-term)))))
+  (when precondition
+    (let* ((new-context (nested-context-with-prototype-variables
+                         context prototype))
+           (precondition-term (parse-into-term-representation
+                               precondition new-context)))
+      (setf (slot-value self 'precondition) precondition-term))))
 
 
 (defmethod operator ((action primitive-action))

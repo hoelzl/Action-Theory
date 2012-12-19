@@ -14,7 +14,7 @@
 ;;; ==================
 
 ;;; The definition of fluents is provided by (indirect) instances of
-;;; FLUENT-DEFINITION.
+;;; FLUENT.
 
 (defgeneric fluents (context)
   (:documentation
@@ -23,55 +23,51 @@
 ;;; TODO: see (setf known-operators)
 (defgeneric (setf fluents) (new-value context))
 
-(defgeneric fluent-definition (fluent-name context &optional default)
+(defgeneric lookup-fluent (fluent-name context &optional default)
   (:documentation
    "Returns the definition of the fluent FLUENT-NAME in CONTEXT.")
   (:method ((fluent-name symbol) (context abstract-context)
             &optional (default nil))
     (gethash fluent-name (fluents context) default)))
 
-(defgeneric (setf fluent-definition) (new-value fluent-name context)
+(defgeneric (setf lookup-fluent) (new-value fluent-name context)
   (:documentation
    "Set the definition for fluent FLUENT-NAME in CONTEXT to NEW-VALUE.")
   (:method (new-value (fluent-name symbol) context)
     (setf (gethash fluent-name (fluents context)) new-value)))
 
-(defclass fluent-definition (operator-mixin context-mixin)
-  ((fluent-class
-    :accessor fluent-class :initarg :class
-    :initform (required-argument :class)
-    :documentation "The class of this fluent.")
-   (fluent-successor-state-axiom
-    :accessor fluent-successor-state-axiom :initarg :successor-state-axiom
+(defclass fluent (operator-mixin context-mixin)
+  ((successor-state-axiom
+    :accessor successor-state-axiom :initarg :successor-state-axiom
     :initform nil
     :documentation "The successor state axiom for this fluent."))
   (:documentation "The definition of a fluent."))
 
 
 (defmethod initialize-instance :after
-    ((self fluent-definition) &key context operator successor-state-axiom)
+    ((self fluent) &key context operator successor-state-axiom)
   (assert context (context)
           "Cannot create a fluent definition without context.")
   (assert (and operator (symbolp operator)) (operator)
           "Cannot create a fluent definition without operator.")
-  (setf (fluent-definition operator context) self)
+  (setf (lookup-fluent operator context) self)
   (when (and successor-state-axiom (consp successor-state-axiom))
-    (setf (slot-value self 'fluent-successor-state-axiom)
+    (setf (slot-value self 'successor-state-axiom)
           (parse-into-term-representation successor-state-axiom context))))
 
 
-(defclass relational-fluent-definition (fluent-definition)
+(defclass relational-fluent (fluent)
   ()
   (:documentation "The definition of a relational fluent."))
 
 (defgeneric declare-relational-fluent (operator context &key class-name)
   (:documentation
-   "Create a new instance of RELATIONAL-FLUENT-DEFINITION and assign it as
+   "Create a new instance of RELATIONAL-FLUENT and assign it as
 fluent definition for OPERATOR in CONTEXT.")
   (:method ((operator symbol) (context abstract-context)
             &key (class-name (symbolicate operator '#:-term)))
-    (setf (fluent-definition operator context)
-          (make-instance 'relational-fluent-definition
+    (setf (lookup-fluent operator context)
+          (make-instance 'relational-fluent
                          :operator operator :class class-name :context context))))
 
 (defun define-relational-fluent (operator signature
@@ -87,8 +83,8 @@ fluent definition for OPERATOR in CONTEXT.")
                    :specializers (list (find-class class-name)))
     (ensure-method #'declare-relational-fluent
                    `(lambda (operator context &key (class-name ',class-name))
-                      (setf (fluent-definition operator context)
-                            (make-instance 'relational-fluent-definition
+                      (setf (lookup-fluent operator context)
+                            (make-instance 'relational-fluent
                               :operator ',operator
                               :signature ',signature
                               :class class-name
@@ -98,18 +94,18 @@ fluent definition for OPERATOR in CONTEXT.")
                                        (find-class 'abstract-context)))))
 
 
-(defclass functional-fluent-definition (fluent-definition)
+(defclass functional-fluent (fluent)
   ()
   (:documentation "The definition of a functional fluent."))
 
 (defgeneric declare-functional-fluent (operator context &key class-name)
   (:documentation
-   "Create a new instance of FUNCTIONAL-FLUENT-DEFINITION and assign it as
+   "Create a new instance of FUNCTIONAL-FLUENT and assign it as
 fluent definition for OPERATOR in CONTEXT.")
   (:method ((operator symbol) (context abstract-context)
             &key (class-name (symbolicate operator '#:-term)))
-    (setf (fluent-definition operator context)
-          (make-instance 'functional-fluent-definition
+    (setf (lookup-fluent operator context)
+          (make-instance 'functional-fluent
                          :operator operator :class class-name :context context))))
 
 (defun define-functional-fluent (operator signature
@@ -125,8 +121,8 @@ fluent definition for OPERATOR in CONTEXT.")
                    :specializers (list (find-class class-name)))
     (ensure-method #'declare-functional-fluent
                    `(lambda (operator context &key (class-name ',class-name))
-                      (setf (fluent-definition operator context)
-                            (make-instance 'functional-fluent-definition
+                      (setf (lookup-fluent operator context)
+                            (make-instance 'functional-fluent
                               :operator ',operator
                               :signature ',signature
                               :class class-name
