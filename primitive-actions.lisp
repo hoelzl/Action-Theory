@@ -14,7 +14,7 @@
 
 
 (define-condition no-definition-for-primitive-action
-    (runtime-error)
+    (action-theory-error)
   ((name :initarg :name)
    (context :initarg :context))
   (:report (lambda (condition stream)
@@ -22,12 +22,12 @@
                (format stream "No primitive action ~A in context ~:W"
                        name context)))))
 
-(defgeneric primitive-action-definition (action-name context &optional default)
+(defgeneric lookup-primitive-action (action-name context &optional default)
   (:documentation 
    "Returns the definition of the primitive action ACTION-NAME in
    CONTEXT.  Signals an error if no primitive action exists and no
    DEFAULT is supplied.")
-  (:method ((action-name symbol) (context compilation-context)
+  (:method ((action-name symbol) (context abstract-context)
             &optional (default nil default-supplied-p))
     (or (gethash action-name (primitive-actions context) nil)
         (if default-supplied-p
@@ -36,44 +36,48 @@
                     'no-definition-for-primitive-action
                     :name action-name :context context)))))
 
-(defgeneric (setf primitive-action-definition) (new-value action-name context)
+(defgeneric (setf lookup-primitive-action) (new-value action-name context)
   (:documentation
    "Set the definition for primitive action ACTION-NAME in CONTEXT to
    NEW-VALUE.")
-  (:method (new-value (action-name symbol) (context compilation-context))
+  (:method (new-value (action-name symbol) (context abstract-context))
     (setf (gethash action-name (primitive-actions context)) new-value)))
 
-(defclass primitive-action-definition (operator-mixin context-mixin)
-  ((action-class
-    :accessor action-class :initarg :class
-    :initform (required-argument :class)
-    :documentation "The class of this primitive action.")
-   (action-precondition
-    :reader action-precondition :initarg :precondition
-    :initform nil
-    :documentation "The precondition for this action.")
-   (action-signature
-    :accessor action-signature :initarg :signature
-    :initform (required-argument :signature)
-    :documentation "The signature of this action."))
+(defclass primitive-action (context-mixin)
+  ((prototype
+    :accessor prototype :initarg :prototype
+    :initform (required-argument :prototype)
+    :documentation "The prototype of this action in the form (NAME . ARGS).")
+   (precondition
+    :reader precondition :initarg :precondition
+    :initform 'true
+    :documentation "The (right-hand side of the) precondition for this action.")
+   (natures-choices
+    :accessor natures-choices :initarg :natures-choices
+    :initform '()
+    :documentation "The nature's choices for this action."))
   (:documentation
    "The definition of a primitive action."))
 
 (defmethod initialize-instance :after
-    ((self primitive-action-definition) &key context operator precondition)
+    ((self primitive-action) &key context operator precondition)
   (assert context (context)
           "Cannot create a primitive action definition without context.")
-  (assert (and operator (symbolp operator)) (operator)
-          "Cannot create a primitive action definition without operator.")
-  (setf (primitive-action-definition operator context) self)
-  (when (and precondition (consp precondition))
-    (let ((precondition-term (parse-into-term-representation
-                              `(assert ',precondition) context)))
-      (setf (slot-value self 'action-precondition) precondition-term))))
+  (setf (lookup-primitive-action operator context) self)
+  (when  precondition
+    (let ((variables (rest (prototype self))))
+      (mapc (lambda (var) (parse-variable-term var context))
+            variables)
+      (let ((precondition-term (parse-into-term-representation
+                                precondition context)))
+        (setf (slot-value self 'precondition) precondition-term)))))
 
 
-(defmethod primitive-action-definition
-    ((definition primitive-action-definition) context &optional default)
+(defmethod operator ((action primitive-action))
+  (first (prototype action)))
+
+(defmethod lookup-primitive-action
+    ((definition primitive-action) context &optional default)
   (declare (ignore context default))
   definition)
 
@@ -85,38 +89,26 @@
                (format stream "Declaring undefined primitive action ~A."
                        operator)))))
 
+#+(or)
 (defgeneric declare-primitive-action (operator context &optional class-name)
   (:documentation
-   "Create a new instance of PRIMITIVE-ACTION-DEFINITION and assign it as
+   "Create a new instance of PRIMITIVE-ACTION and assign it as
 primitive-action definition for OPERATOR in CONTEXT.")
-  (:method ((operator symbol) (context compilation-context)
+  (:method ((operator symbol) (context abstract-context)
             &optional (class-name (symbolicate operator '#:-term)))
-    (cerror "Create a direct instance of PRIMITIVE-ACTION-DEFINITION."
+    (cerror "Create a direct instance of PRIMITIVE-ACTION."
             'declaring-undefined-primitive-action
             :operator operator)
-    (setf (primitive-action-definition operator context)
-          (make-instance 'primitive-action-definition
+    (setf (lookup-primitive-action operator context)
+          (make-instance 'primitive-action
             :operator operator :class class-name :context context))))
 
-(defun define-primitive-action (operator signature
-                                &key (class-name  (symbolicate operator '#:-term))
-                                     precondition
-                                     force-redefinition)
-  (when (or (not (find-class class-name nil)) force-redefinition)
-    (ensure-class class-name :direct-superclasses '(primitive-action-term))
-    (ensure-method #'operator `(lambda (term)
-                                 (declare (ignore term))
-                                 ',operator)
-                   :specializers (list (find-class class-name)))
-    (ensure-method #'declare-primitive-action
-                   `(lambda (operator context &optional (class-name ',class-name))
-                      (setf (primitive-action-definition operator context)
-                            (make-instance 'primitive-action-definition
-                              :operator ',operator
-                              :signature ',signature
-                              :class class-name
-                              :precondition ',precondition
-                              :context context)))
-                   :specializers (list (intern-eql-specializer operator)
-                                       (find-class 'compilation-context)))))
-
+(defun declare-primitive-action (&key prototype precondition natures-choices
+                                      (context *default-context*))
+  "Create a new instance of PRIMITIVE-ACTION and register it as
+  primitive-action definition in CONTEXT."
+  (make-instance 'primitive-action
+    :prototype prototype
+    :precondition precondition
+    :natures-choices natures-choices
+    :context context))

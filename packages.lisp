@@ -8,7 +8,7 @@
 (in-package :common-lisp-user)
 
 (defpackage #:action-theory
-  (:use #:common-lisp #:alexandria #:iterate)
+  (:use #:closer-common-lisp #:alexandria #:iterate)
   (:import-from #:snark-lisp
                 #:forall #:exists #:not #:iff)
   (:nicknames #:at)
@@ -73,7 +73,3 @@
   (:use #:common-lisp #:alexandria #:iterate
         #:common-lisp-user
         #:action-theory))
-
-(defpackage #:action-theory-tests
-  (:use #:common-lisp #:alexandria #:iterate
-	#:action-theory))

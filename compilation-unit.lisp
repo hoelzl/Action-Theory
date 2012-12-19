@@ -80,7 +80,7 @@
   *default-primitive-action-names*)
 
 (defclass compilation-unit
-    (compilation-context singleton-terms-mixin terms-with-unique-names-mixin)
+    (abstract-context singleton-terms-mixin terms-with-unique-names-mixin)
   ((declarations 
     :accessor declarations :initarg :declarations
     :initform (make-array '(10) :adjustable t :fill-pointer 0)
@@ -120,9 +120,10 @@
   (:documentation
    "A single compilation unit."))
 
+#+(or)
 (defmethod shared-initialize :after ((self compilation-unit) slot-names &key)
   (declare (ignore slot-names))
-  (dolist (action (default-primitive-action-names))
+    (dolist (action (default-primitive-action-names))
     (declare-primitive-action action self)))
 
 (defmethod lookup-variable (name sort (context compilation-unit) &optional (create? t))
@@ -183,7 +184,7 @@
 ;;; Local Context
 ;;; =============
 
-(defclass local-context (compilation-context)
+(defclass local-context (abstract-context)
   ((enclosing-context :accessor enclosing-context :initarg :enclosing-context
                   :initform (required-argument :enclosing-context))
    (local-variables :accessor local-variables :initarg :local-variables
@@ -252,6 +253,7 @@
   (:documentation
    "The state of a top-level interpreter."))
 
+(defvar *default-context* (make-instance 'top-level-context))
 
 
 ;;; Some utilities for interactive exploration

@@ -5,19 +5,19 @@
 ;;; This file is licensed under the MIT license; see the file LICENSE
 ;;; in the root directory for further information.
 
-(in-package #:odysseus)
+(in-package #:action-theory-test)
 
-(in-suite odysseus-syntax-suite)
+(in-suite action-theory-syntax-suite)
 
 (deftest test-known-operators-for-compilation-unit ()
   (let* ((cu (make-instance 'compilation-unit))
          (ops (known-operators cu)))
     (is (typep ops 'hash-table))
-    (doplist (op type odysseus::*logical-operators*)
+    (doplist (op type action-theory::*logical-operators*)
       (is (eql type (gethash op ops nil))))))
 
 (deftest test-make-variable ()
-  (let ((cc (make-instance 'compilation-context))
+  (let ((cc (make-instance 'abstract-context))
 	(var (make-variable-term 'foo 'bar nil :intern nil)))
     (is (eql 'foo (name var)))
     (is (eql 'bar (declared-sort var cc)))

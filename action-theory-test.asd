@@ -1,20 +1,22 @@
-;;; terms-integration-tests
+;;; action-theory-test
 
-(asdf:defsystem #:terms-tests
+(asdf:defsystem #:action-theory-test
   :serial t
-  :description "Integration tests for Terms"
+  :description "Tests for the action theory framework"
   :version "0.0.1"
   :author "Matthias Hoelzl <tc@xantira.com>"
   :license "MIT, see file LICENSE"
   :depends-on (#:alexandria
-	       #:fiveam
+	       #+swank
+               #:hu.dwim.stefil+swank
+               #-swank
+               #:hu.dwim.stefil
                #:iterate
-	       #-(or ecl abcl)
-	       #:closer-mop
-	       #:terms)
-  :components ((:file "test-suites")
+	       #-(or ecl abcl) #:closer-mop
+	       #:action-theory)
+  :components ((:file "test-package")
+	       (:file "test-suites")
 	       (:file "test-utilities")
 	       (:file "test-terms")
 	       (:file "test-situation")
-	       (:file "test-parser")
-	       (:file "test-interpreter")))
+	       (:file "test-parser")))

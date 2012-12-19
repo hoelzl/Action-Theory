@@ -87,12 +87,7 @@
   (:method ((term test-term) &key as-list include-global)
     (declare (ignore as-list))
     `(,(operator term)
-      ,(to-sexpr (argument term) :include-global include-global)
-      ,@(when (not (zerop (solution-depth term)))
-          `(:solution-depth ,(to-sexpr (solution-depth term))))
-      ,@(when (not (= *default-max-solution-depth* (max-solution-depth term)))
-          `(:max-solution-depth ,(to-sexpr (max-solution-depth term))))
-      ,@(remove-from-plist (keywords term) :solution-depth :max-solution-depth)))
+      ,(to-sexpr (argument term) :include-global include-global)))
 
   (:method ((term named-declaration-term) &key as-list include-global)
     (declare (ignore as-list include-global))
@@ -149,20 +144,10 @@
   (print-unreadable-object (term stream :type t :identity t)
     (format stream "~A.~A" (name term) (slot-value term 'declared-sort))))
 
-(defmethod print-object ((term primitive-action-definition) stream)
+(defmethod print-object ((term primitive-action) stream)
   (print-unreadable-object (term stream :type t :identity t)
-    (format stream "~A~:[~;~:*~W~]" (operator term) (action-precondition term))))
-
-(defmethod print-object ((term multi-solution-mixin) stream)
-  (print-unreadable-object (term stream :type t)
-    (format stream "~W~:[~; :SOLUTION-DEPTH ~:*~A~]~:[~; :MAX-SOLUTION-DEPTH ~:*~A~]"
-            (if (typep term 'term)
-                (to-sexpr term)
-                :unknown-term)
-            (when (not (zerop (solution-depth term)))
-              (solution-depth term))
-            (when (not (= *default-max-solution-depth* (max-solution-depth term)))
-              (max-solution-depth term)))))
+    (format stream "~A ~:[~;~:*~W~]" (operator term)
+            (to-sexpr (precondition term)))))
 
 (defmethod print-object ((self situation) stream)
   (print-unreadable-object (self stream :type t)
@@ -381,15 +366,15 @@
    arguments of TERM in CONTEXT.  The second argument is TERM applied to the
    variables.")
 
-  (:method ((term cons) (context compilation-context))
+  (:method ((term cons) (context abstract-context))
     (variables-and-term-for-universal-quantification
      (parse-into-term-representation term context)
      context))
 
-  (:method ((term variable-term) (context compilation-context))
+  (:method ((term variable-term) (context abstract-context))
     (values '() (name term)))
 
-  (:method ((term application-term) (context compilation-context))
+  (:method ((term application-term) (context abstract-context))
     (let* ((arguments (arguments term))
            (sort (declared-sort term context))
            (vars (mapcar (lambda (sort)
@@ -404,7 +389,7 @@
       (values vars
               (cons (operator term) vars))))
 
-  (:method ((term signature-declaration-term) (context compilation-context))
+  (:method ((term signature-declaration-term) (context abstract-context))
     ;; The first element of the signature is the return value.
     (let* ((signature (rest (signature term)))
            (vars (mapcar (lambda (sort)
@@ -413,11 +398,11 @@
       (values vars
               (cons (name term) vars))))
 
-  (:method ((term constant-declaration-term) (context compilation-context))
+  (:method ((term constant-declaration-term) (context abstract-context))
     (values '()
             (name term)))
 
-  (:method ((term function-declaration-term) (context compilation-context))
+  (:method ((term function-declaration-term) (context abstract-context))
     (let* ((signature (declared-sort term context))
            (vars (if (consp signature)
                      (mapcar (lambda (sort)
@@ -432,7 +417,7 @@
    "Returns the unique names axiom for LHS and RHS in CONTEXT, i.e., an
    assertion that for all possible arguments, LHS and RHS are not equal.")
 
-  (:method ((lhs term) (rhs term) (context compilation-context))
+  (:method ((lhs term) (rhs term) (context abstract-context))
     (multiple-value-bind (lhs-vars lhs-term)
         (variables-and-term-for-universal-quantification lhs context)
       (multiple-value-bind (rhs-vars rhs-term)
@@ -448,7 +433,7 @@
    "Returns the unique names axiom for the arguments of TERM in CONTEXT, i.e.,
    an assertion that the operator of TERM is injective.")
   ;; TODO: Would it be enough to simply declare the terms as injective?
-  (:method ((term term) (context compilation-context))
+  (:method ((term term) (context abstract-context))
     (multiple-value-bind (lhs-vars lhs-term)
         (variables-and-term-for-universal-quantification term context)
       (multiple-value-bind (rhs-vars rhs-term)
@@ -466,8 +451,8 @@
                      (not (= ,lhs-term ,rhs-term)))))
            context))))))
 
-(defgeneric make-unique-names-axioms (compilation-context)
-  (:method ((context compilation-context))
+(defgeneric make-unique-names-axioms (context)
+  (:method ((context abstract-context))
     (let* ((terms (terms-with-unique-names context))
            (length (length terms)))
       (iterate outer
@@ -659,10 +644,10 @@
 (defvar *support-unique-name-axioms* nil)
 
 #+(or)
-(defgeneric set-up-snark (compilation-context)
+(defgeneric set-up-snark (abstract-context)
   (:documentation
-   "Set up Snark to prove things in COMPILATION-CONTEXT.")
-  (:method ((context compilation-context))
+   "Set up Snark to prove things in ABSTRACT-CONTEXT.")
+  (:method ((context abstract-context))
     (iterate (for declaration in-sequence (declarations context))
       #+(or)
       (when (and (trace-terms-p) *trace-declaration-processing*)
@@ -673,7 +658,7 @@
        :supported *support-declarations*
        :rewrite-too *assert-rewrite-for-declarations*))
     (iterate (for (nil action) in-hashtable (primitive-actions context))
-      (let ((precondition (action-precondition action)))
+      (let ((precondition (precondition action)))
         (when precondition
           #+(or)
           (when (and (trace-terms-p) *trace-precondition-processing*)

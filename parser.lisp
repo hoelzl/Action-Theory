@@ -44,10 +44,10 @@
     (with-slots (name) declaration
       (let ((class (find-class name)))
         (if class
-            (cond ((not (typep class 'primitive-action-definition))
+            (cond ((not (typep class 'primitive-action))
                    (cerror "Redefine the class."
                            'invalid-class-for-action-theory-element
-                           :expected-class 'primitive-action-definition
+                           :expected-class 'primitive-action
                            :current-class class)
                    (define-primitive-action (name declaration)
                        (declared-sort declaration context)
@@ -66,9 +66,6 @@
     (declare-operator-sort (name declaration)
                            (declared-sort declaration context)
                            context)
-    (apply #'define-primitive-action (name declaration)
-           (signature declaration)
-           (keywords declaration))
     (declare-primitive-action (name declaration) context))
 
   (:method ((declaration functional-fluent-declaration-term) context)
@@ -92,7 +89,7 @@
 
 ;;; Defgeneric form for PARSE-INTO-TERM-REPRESENTATION is in syntax.lisp.
 
-(defgeneric parse-arguments-for-term (term arguments compilation-context)
+(defgeneric parse-arguments-for-term (term arguments context)
   (:documentation
    "Parse the argument list for a TERM-instance. ARGUMENTS is the
    argument list without the leading symbol that determines TERM's
@@ -111,13 +108,7 @@
         (parse-into-term-representation (unquote (first arguments))
                                         (context term)))
   (let ((keywords (mapcar 'unquote (rest arguments))))
-    (setf (keywords term) keywords)
-    (let ((solution-depth (getf keywords :solution-depth)))
-      (when solution-depth
-        (setf (solution-depth term) solution-depth)))
-    (let ((max-solution-depth (getf keywords :max-solution-depth)))
-      (when max-solution-depth
-        (setf (max-solution-depth term) max-solution-depth)))))
+    (setf (keywords term) keywords)))
 
 (defmethod parse-arguments-for-term ((term body-term) arguments context)
   "Parse each for a body term argument into term representation in CONTEXT."
@@ -201,16 +192,16 @@ arguments are passed, otherwise the name of TERM will not be set."
         (parse-into-term-representation (unquote (first arguments)) context))
   (setf (keywords term) (mapcar 'unquote (rest arguments))))
 
-(defgeneric parse-variable-term (exp compilation-context)
+(defgeneric parse-variable-term (exp context)
   (:documentation
    "Parse EXP as a VARIABLE-TERM.")
 
-  (:method ((exp symbol) (context compilation-context))
+  (:method ((exp symbol) (context abstract-context))
     (multiple-value-bind (name sort)
         (destructure-variable-name exp)
       (make-variable-term name sort context)))
 
-  (:method ((exp cons) (context compilation-context))
+  (:method ((exp cons) (context abstract-context))
     (destructuring-bind (name &key sort global &allow-other-keys) exp
       (let ((var (parse-variable-term name context)))
         (when global
@@ -225,12 +216,23 @@ arguments are passed, otherwise the name of TERM will not be set."
               (setf (declared-sort var context) sort)))
         var)))
 
-  (:method ((exp variable-term) (context compilation-context))
+  (:method ((exp variable-term) (context abstract-context))
     (setf (context exp) context)
     exp))
 
 
-(defmethod parse-into-term-representation ((term term) (context compilation-context))
+(defun parse-term (expression
+                   &optional (context (make-instance 'local-context
+                                        :enclosing-context *default-context*)))
+  "A simple wrapper around PARSE-INTO-TERM-REPRESENTATION that provides a
+  fresh default context.  Mainly for interactive exploration."
+  (parse-into-term-representation expression context))
+
+(defgeneric parse-into-term-representation (expression context)
+  (:documentation
+   "Parse EXPRESSION into term representation in CONTEXT."))
+
+(defmethod parse-into-term-representation ((term term) (context abstract-context))
   "When re-parsing an already parsed term, return it unchanged.  But only if
 the new context equals the one in which it was originally parsed."
   (assert (eql (context term) context) ()
@@ -238,11 +240,11 @@ the new context equals the one in which it was originally parsed."
           term context)
   term)
 
-(defmethod parse-into-term-representation ((exp symbol) (context compilation-context))
+(defmethod parse-into-term-representation ((exp symbol) (context abstract-context))
   "Parse a single symbol.
-If it is NIL or NULL return an empty program term.
-If it starts with a question mark, make a variable for CONTEXT.
-If neither of these cases apply, return a primitive term."
+  If it is NIL or NULL return an empty program term.
+  If it starts with a question mark, make a variable for CONTEXT.
+  If neither of these cases apply, return a primitive term."
   (cond ((or (eql exp 'nil) (eql exp 'null))
 	 (make-instance 'empty-program-term :context context :source exp))
 	((starts-with-question-mark-p exp)
@@ -254,16 +256,16 @@ If neither of these cases apply, return a primitive term."
                (make-instance 'primitive-term
                  :value exp :context context :source exp))))))
 
-(defmethod parse-into-term-representation ((exp number) (context compilation-context))
+(defmethod parse-into-term-representation ((exp number) (context abstract-context))
   "Return a number term with value EXP."
   (make-instance 'number-term :value exp :context context))
 
-(defmethod parse-into-term-representation ((exp string) (context compilation-context))
+(defmethod parse-into-term-representation ((exp string) (context abstract-context))
   "Return a primitive term with value EXP."
   (make-instance 'primitive-term :value exp :context context))
 
 (defmethod parse-into-term-representation
-    ((exp snark::variable) (context compilation-context))
+    ((exp snark::variable) (context abstract-context))
   "Return a variable term corresponding to EXP in the current context."
   (let* ((sort (snark-feature::feature-name (snark::variable-sort exp)))
          (name (make-symbol (format nil "?SV~A.~A"
@@ -274,22 +276,22 @@ If neither of these cases apply, return a primitive term."
                    :context context
                    :intern nil :is-bound-p nil)))
 
-(defmethod parse-into-term-representation ((exp cons) (context compilation-context))
+(defmethod parse-into-term-representation ((exp cons) (context abstract-context))
   "Return a TERM-instance for EXP in CONTEXT.
-If the operator of EXP has a known term type make an instance of that type.
-Otherwise, if the operator is a primitive action, then return an instance of
-that action's class.
-Otherwise, if the operator is a fluent return an instance of the fluent's
-class.
-Otherwise return an instance of UNKNOWN-GENERAL-APPLICATION-TERM."
+  If the operator of EXP has a known term type make an instance of that type.
+  Otherwise, if the operator is a primitive action, then return an instance of
+  that action's class.
+  Otherwise, if the operator is a fluent return an instance of the fluent's
+  class.
+  Otherwise return an instance of UNKNOWN-GENERAL-APPLICATION-TERM."
   (let* ((operator (first exp))
 	 (known-type (term-type-for-operator operator context nil))
          (term (cond (known-type
                       (apply 'make-instance known-type :context context :source exp '()))
-                     ((let ((primitive-action-definition
+                     ((let ((primitive-action
                               (gethash operator (primitive-actions context) nil)))
-                        (if primitive-action-definition
-                            (make-instance (action-class primitive-action-definition)
+                        (if primitive-action
+                            (make-instance 'primitive-action-term
                                            :context context :source exp)
                             nil)))
                      ((let ((fluent-definition

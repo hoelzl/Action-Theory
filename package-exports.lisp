@@ -28,6 +28,8 @@
       #:defglobal
       #:gethash*
       #:make-uuid #:make-uuid-symbol
+      ;; Macro helpers
+      #:uncons #:extract-arguments-from-lambda-list
       ;; Three-valued logic
       #:boolean3
       #:and3 #:or3 #:not3
@@ -36,16 +38,6 @@
       #:defdelegate #:define-delegates
       #:define-interning-make-instance
       #:maybe-suppress-snark-output
-      ;; Support for testing
-      #:action-theory-suite
-      #:action-theory-utilities-suite
-      #:action-theory-macro-suite
-      #:action-theory-syntax-suite
-      #:action-theory-situation-suite
-      #:action-theory-parser-suite
-      #:action-theory-interpreter-suite
-      #:action-theory-compiler-suite
-      #:action-theory-builtins-suite
 
       ;; Double exports (from syntax) for Snark
       #:to-sexpr
@@ -54,13 +46,11 @@
   
   (defvar *action-theory-context-exports*
     '(;; Forward declaration
-      #:parse-into-term-representation
-      
-      #:primitive-action-definition #:context
-      #:action-class #:action-precondition
-      #:declare-primitive-action #:define-primitive-action
+      #:lookup-primitive-action #:context
+      #:action-class #:precondition
+      #:declare-primitive-action
       #:fluent-definition
-      #:fluent-class #:fluent-successor-state
+      #:fluent-class #:fluent-successor-state-axiom
       #:relational-fluent-definition
       #:declare-relational-fluent #:define-relational-fluent
       #:functional-fluent-definition
@@ -68,7 +58,7 @@
       #:arguments-mixin #:arguments
       #:known-term #:is-known-term-p
       
-      #:compilation-context
+      #:abstract-context
       #:declarations
       #:declared-operator-sorts #:declare-operator-sort
       #:terms-with-unique-names #:add-to-terms-with-unique-names
@@ -81,7 +71,8 @@
       #:singleton-terms-mixin
       #:terms-with-unique-names-mixin
       #:compilation-unit
-      #:local-context #:enclosing-context #:local-variables))
+      #:local-context #:enclosing-context #:local-variables
+      #:top-level-context #:*default-context*))
   
   (defvar *action-theory-term-exports*
     '(#:term #:source
@@ -116,18 +107,12 @@
       #:universal-quantification-term
       #:existential-quantification-term
 
-      #:*default-max-solution-depth*
-      #:multi-solution-mixin
-      #:soulution-depth #:max-solution-depth
-      #:clone-multi-solution-term-increasing-depth
-
       #:empty-program-term
       #:is-final-term-p
       #:primitive-action-term
       #:precondition-term
       #:no-operation-term #:no-operation
       #:test-term
-      #:solution-depth #:max-solution-depth
       #:sequence-term
       #:action-choice-term
       #:argument-choice-term
@@ -144,7 +129,7 @@
       #:keywords-mixin #:keywords
       #:local-context-mixin
       #:term-with-unique-name-mixin
-      #:declared-sort #:successor-state
+      #:declared-sort #:successor-state-axiom
       #:named-declaration-term
       #:sort-declaration-term
       #:subsort-declaration-term #:supersort
@@ -220,7 +205,6 @@
       
       #:poss
       
-      #:define-primitive-action #:defaction #:defprimitive
       #:primitive-action #:primact
       #:define-procedure #:defprocedure #:defproc
       #:procedure #:proc
@@ -240,7 +224,8 @@
       #:parse-binding
       #:destructure-variable-name
       #:parse-variable-term
-      #:parse-into-term-representation))
+      #:parse-into-term-representation
+      #:parse-term))
   
   (defvar *action-theory-snark-exports*
     '(#:initialize-snark

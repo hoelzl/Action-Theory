@@ -5,9 +5,9 @@
 ;;; This file is licensed under the MIT license; see the file LICENSE
 ;;; in the root directory for further information.
 
-(in-package #:odysseus)
+(in-package #:action-theory-test)
 
-(in-suite odysseus-situation-suite)
+(in-suite action-theory-situation-suite)
 
 (deftest test-initial-situation ()
   (is (eq 's0 (to-sexpr (make-instance 'initial-situation)))))

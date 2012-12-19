@@ -5,8 +5,8 @@
 ;;; This file is licensed under the MIT license; see the file LICENSE
 ;;; in the root directory for further information.
 
-(in-package #:odysseus)
-(in-suite odysseus-utilities-suite)
+(in-package #:action-theory-test)
+(in-suite action-theory-utilities-suite)
 
 (deftest test-name-mixin ()
   (is (eql :<unnamed> (name (make-instance 'name-mixin))))
@@ -16,16 +16,17 @@
   (signals error (make-instance 'required-name-mixin))
   (is (eql 'foo (name (make-instance 'required-name-mixin :name 'foo)))))
 
+#+(or)
 (deftest test-trace-format ()
-  (let ((*odysseus-trace-output* (make-string-output-stream))
-        (*trace-odysseus* nil))
+  (let ((*action-theory-trace-output* (make-string-output-stream))
+        (*trace-action-theory* nil))
     (trace-format "abc~Axyz" 123)
-    (is (string-equal (get-output-stream-string *odysseus-trace-output*)
+    (is (string-equal (get-output-stream-string *action-theory-trace-output*)
                       "")))
-  (let ((*odysseus-trace-output* (make-string-output-stream))
-        (*trace-odysseus* t))
+  (let ((*action-theory-trace-output* (make-string-output-stream))
+        (*trace-action-theory* t))
     (trace-format "abc~Axyz" 123)
-    (is (string-equal (get-output-stream-string *odysseus-trace-output*)
+    (is (string-equal (get-output-stream-string *action-theory-trace-output*)
                       "abc123xyz"))))
 
 (deftest test-feature-for-lisp-type ()
@@ -91,12 +92,12 @@
   (is (= 1 (uncons 1)))
   (is (= 1 (uncons '(1)))))
 
-(deftest test-process-argument-arglist ()
+(deftest test-extract-arguments-from-lambda-list ()
   (is (equalp '(x y z foo bar)
-              (process-argument-arglist
+              (extract-arguments-from-lambda-list
                '(x (y t) (z symbol) &optional foo (bar 1)))))
   (is (equalp '(x y z :foo foo :bar bar)
-              (process-argument-arglist
+              (extract-arguments-from-lambda-list
                '(x (y t) (z symbol) &key foo (bar 1))))))
 
 (deftest test-boolean3-deftype ()

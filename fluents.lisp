@@ -26,7 +26,7 @@
 (defgeneric fluent-definition (fluent-name context &optional default)
   (:documentation
    "Returns the definition of the fluent FLUENT-NAME in CONTEXT.")
-  (:method ((fluent-name symbol) (context compilation-context)
+  (:method ((fluent-name symbol) (context abstract-context)
             &optional (default nil))
     (gethash fluent-name (fluents context) default)))
 
@@ -41,42 +41,42 @@
     :accessor fluent-class :initarg :class
     :initform (required-argument :class)
     :documentation "The class of this fluent.")
-   (fluent-successor-state
-    :accessor fluent-successor-state :initarg :successor-state
+   (fluent-successor-state-axiom
+    :accessor fluent-successor-state-axiom :initarg :successor-state-axiom
     :initform nil
     :documentation "The successor state axiom for this fluent."))
   (:documentation "The definition of a fluent."))
 
 
 (defmethod initialize-instance :after
-    ((self fluent-definition) &key context operator successor-state)
+    ((self fluent-definition) &key context operator successor-state-axiom)
   (assert context (context)
           "Cannot create a fluent definition without context.")
   (assert (and operator (symbolp operator)) (operator)
           "Cannot create a fluent definition without operator.")
   (setf (fluent-definition operator context) self)
-  (when (and successor-state (consp successor-state))
-    (setf (slot-value self 'fluent-successor-state)
-          (parse-into-term-representation successor-state context))))
+  (when (and successor-state-axiom (consp successor-state-axiom))
+    (setf (slot-value self 'fluent-successor-state-axiom)
+          (parse-into-term-representation successor-state-axiom context))))
 
 
 (defclass relational-fluent-definition (fluent-definition)
   ()
   (:documentation "The definition of a relational fluent."))
 
-(defgeneric declare-relational-fluent (operator context &optional class-name)
+(defgeneric declare-relational-fluent (operator context &key class-name)
   (:documentation
    "Create a new instance of RELATIONAL-FLUENT-DEFINITION and assign it as
 fluent definition for OPERATOR in CONTEXT.")
-  (:method ((operator symbol) (context compilation-context)
-            &optional (class-name (symbolicate operator '#:-term)))
+  (:method ((operator symbol) (context abstract-context)
+            &key (class-name (symbolicate operator '#:-term)))
     (setf (fluent-definition operator context)
           (make-instance 'relational-fluent-definition
                          :operator operator :class class-name :context context))))
 
 (defun define-relational-fluent (operator signature
                                  &key (class-name (symbolicate operator '#:-term))
-                                      successor-state
+                                      successor-state-axiom
                                       force-redefinition)
   (when (or (not (find-class class-name nil)) force-redefinition)
     (ensure-class class-name
@@ -85,36 +85,36 @@ fluent definition for OPERATOR in CONTEXT.")
                                  (declare (ignore term))
                                  ',operator)
                    :specializers (list (find-class class-name)))
-    (ensure-method #'declare-primitive-action
-                   `(lambda (operator context &optional (class-name ',class-name))
+    (ensure-method #'declare-relational-fluent
+                   `(lambda (operator context &key (class-name ',class-name))
                       (setf (fluent-definition operator context)
                             (make-instance 'relational-fluent-definition
                               :operator ',operator
                               :signature ',signature
                               :class class-name
-                              :successor-state ',successor-state
+                              :successor-state-axiom ',successor-state-axiom
                               :context context)))
                    :specializers (list (intern-eql-specializer operator)
-                                       (find-class 'compilation-context)))))
+                                       (find-class 'abstract-context)))))
 
 
 (defclass functional-fluent-definition (fluent-definition)
   ()
   (:documentation "The definition of a functional fluent."))
 
-(defgeneric declare-functional-fluent (operator context &optional class-name)
+(defgeneric declare-functional-fluent (operator context &key class-name)
   (:documentation
    "Create a new instance of FUNCTIONAL-FLUENT-DEFINITION and assign it as
 fluent definition for OPERATOR in CONTEXT.")
-  (:method ((operator symbol) (context compilation-context)
-            &optional (class-name (symbolicate operator '#:-term)))
+  (:method ((operator symbol) (context abstract-context)
+            &key (class-name (symbolicate operator '#:-term)))
     (setf (fluent-definition operator context)
           (make-instance 'functional-fluent-definition
                          :operator operator :class class-name :context context))))
 
 (defun define-functional-fluent (operator signature
                                  &key (class-name (symbolicate operator '#:-term))
-                                      successor-state
+                                      successor-state-axiom
                                       force-redefinition)
   (when (or (not (find-class class-name nil)) force-redefinition)
     (ensure-class class-name
@@ -123,15 +123,15 @@ fluent definition for OPERATOR in CONTEXT.")
                                  (declare (ignore term))
                                  ',operator)
                    :specializers (list (find-class class-name)))
-    (ensure-method #'declare-primitive-action
-                   `(lambda (operator context &optional (class-name ',class-name))
+    (ensure-method #'declare-functional-fluent
+                   `(lambda (operator context &key (class-name ',class-name))
                       (setf (fluent-definition operator context)
                             (make-instance 'functional-fluent-definition
                               :operator ',operator
                               :signature ',signature
                               :class class-name
-                              :successor-state ',successor-state
+                              :successor-state-axiom ',successor-state-axiom
                               :context context)))
                    :specializers (list (intern-eql-specializer operator)
-                                       (find-class 'compilation-context)))))
+                                       (find-class 'abstract-context)))))
 

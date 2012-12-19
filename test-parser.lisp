@@ -5,9 +5,9 @@
 ;;; This file is licensed under the MIT license; see the file LICENSE
 ;;; in the root directory for further information.
 
-(in-package #:terms-tests)
+(in-package #:action-theory-test)
 
-(in-suite odysseus-parser-suite)
+(in-suite action-theory-parser-suite)
 
 (deftest test-starts-with-question-mark-p ()
   (is (starts-with-question-mark-p '?x))
@@ -175,8 +175,6 @@
     (is (= arity (length (arguments parsed-term))))
     (is (typep (first (arguments parsed-term)) 'variable-term))))
 
-(define-primitive-action 'foo '(t t))
-(define-primitive-action 'bar '(t))
 
 (deftest test-parse-into-term-representation-04 ()
   (let ((cc (make-instance 'compilation-unit)))

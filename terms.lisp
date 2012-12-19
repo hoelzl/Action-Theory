@@ -51,11 +51,11 @@
   (:documentation
    "Sets the declared sort of TERM in CONTEXT to SORT."))
 
-(defgeneric successor-state (term)
+(defgeneric successor-state-axiom (term)
   (:documentation
    "Returns the successor state axiom of TERM, or NIL if none exists.")
   (:method ((term keywords-mixin))
-    (getf (keywords term) :successor-state)))
+    (getf (keywords term) :successor-state-axiom)))
 
 ;;; Unique Terms
 ;;; ============
@@ -161,12 +161,12 @@
                          (incf *unique-variable-counter*)
                          sort-name))))
 
-(defmethod declared-sort ((var variable-term) (context compilation-context))
+(defmethod declared-sort ((var variable-term) (context abstract-context))
   (declare (ignore context))
   (slot-value var 'declared-sort))
 
 (defmethod (setf declared-sort)
-    (sort (var variable-term) (context compilation-context))
+    (sort (var variable-term) (context abstract-context))
   (setf (slot-value var 'declared-sort) sort)
   (setf (unique-name var) (make-unique-variable-name var context)))
         
@@ -301,7 +301,7 @@ structure."))
       (call-next-method)))
 
 (defmethod (setf declared-sort)
-    (sort (term application-term) (context compilation-context))
+    (sort (term application-term) (context abstract-context))
   (declare-operator-sort (operator term) sort context))
 
 
@@ -559,34 +559,6 @@ or :ARG3 init-keywords is also provided."
       exist         existential-quantification-term))
 
 
-;;; Mixin for Multiple Solutions
-;;; ----------------------------
-
-(defvar *default-max-solution-depth* 3)
-
-(defclass multi-solution-mixin ()
-  ((solution-depth
-    :accessor solution-depth :initarg :solution-depth
-    :initform 0
-    :documentation
-    "How many solutions of the theorem prover should be skipped before we
-    accept the result.  This serves to drive search for alternative
-    solutions.")
-   (max-solution-depth
-    :accessor max-solution-depth :initarg :max-solution-depth
-    :initform *default-max-solution-depth*
-    :documentation
-    "The maximum solution depth for this term."))
-  (:documentation
-   "A mixin inherited by classes that should return multiple solutions from
-   the theorem prover."))
-
-(defgeneric clone-multi-solution-term-increasing-depth (term)
-  (:documentation
-   "Clone a term that implements MULTI-SOLUTION-MIXIN, and increase its
-   solution depth."))
-
-
 ;;; Programming-Language Terms
 ;;; --------------------------
 
@@ -606,8 +578,7 @@ or :ARG3 init-keywords is also provided."
   (:method ((term empty-program-term))
     t))
 
-(defclass primitive-action-term
-    (known-general-application-term multi-solution-mixin)
+(defclass primitive-action-term (known-general-application-term)
   ()
   (:documentation
    "A term describing the execution of a primitive action."))
@@ -619,41 +590,21 @@ or :ARG3 init-keywords is also provided."
     :arguments (list term situation)
     :context (context term)))
 
-(defmethod clone-multi-solution-term-increasing-depth ((term primitive-action-term))
-  (make-instance (class-of term)
-    :arguments (arguments term)
-    :solution-depth (1+ (solution-depth term))
-    :max-solution-depth (max-solution-depth term)
-    :context (context term)
-    :source :generated-term))
-
-(defmethod action-precondition ((term primitive-action-term))
-  (let ((definition (primitive-action-definition (operator term) (context term))))
-    (action-precondition definition)))
+(defmethod precondition ((term primitive-action-term))
+  (let ((definition (lookup-primitive-action (operator term) (context term))))
+    (precondition definition)))
 
 (defmethod operator ((term primitive-action-term))
   (declare (ignore term))
   :unknown-primitive-action-term)
 
-(define-primitive-action 'no-operation '())
-
-(defclass test-term (unary-term keywords-mixin multi-solution-mixin)
+(defclass test-term (unary-term keywords-mixin)
   ()
   (:documentation
    "A term describing a test performed during the execution of a program."))
 
 (defmethod operator ((term test-term))
   'holds?)
-
-(defmethod clone-multi-solution-term-increasing-depth ((term test-term))
-  (make-instance (class-of term)
-    :argument (argument term)
-    :solution-depth (1+ (solution-depth term))
-    :max-solution-depth (max-solution-depth term)
-    :keywords (remove-from-plist (keywords term) :solution-depth)
-    :context (context term)
-    :source :generated-term))
-
 
 (defclass sequence-term (body-term)
   ()
@@ -666,18 +617,10 @@ or :ARG3 init-keywords is also provided."
 (defmethod is-final-term-p ((term sequence-term))
   (null (body term)))
 
-(defclass action-choice-term (body-term multi-solution-mixin)
+(defclass action-choice-term (body-term)
   ()
   (:documentation
    "Terms that describe the non-deterministic choice of an action"))
-
-(defmethod clone-multi-solution-term-increasing-depth ((term action-choice-term))
-  (make-instance (class-of term)
-    :body (body term)
-    :solution-depth (1+ (solution-depth term))
-    :max-solution-depth (max-solution-depth term)
-    :context (context term)
-    :source :generated-term))
 
 (defmethod operator ((term action-choice-term))
   'one-of)

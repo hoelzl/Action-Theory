@@ -9,19 +9,6 @@
 #+debug-action-theory
 (declaim (optimize (debug 3) (space 1) (speed 0) (compilation-speed 0)))
 
-;;; Forward Declarations from the Parser
-;;; ====================================
-
-;;; The following declaration is introduced here to avoid compiler warnings.
-;;; It logically belongs into the file parser.lisp.
-
-;;; TODO: Maybe this is a sign that we should put all definitions of generic
-;;; functions into a file that is processed early in the compilation process?
-
-(defgeneric parse-into-term-representation (expression compilation-context)
-  (:documentation
-   "Parse EXPRESSION into term representation in COMPILATION-CONTEXT."))
-
 ;;; Compilation Context
 ;;; ===================
 
@@ -29,7 +16,7 @@
 ;;; terms with nested quantification interspersed with sort
 ;;; declarations.
 
-(defclass compilation-context ()
+(defclass abstract-context ()
   ()
   (:documentation
    "Context needed to parse terms with nested scopes."))
@@ -38,7 +25,7 @@
   (:documentation
    "Returns the enclosing context of CONTEXT, or NIL if CONTEXT has no
    enclosing context.")
-  (:method ((context compilation-context))
+  (:method ((context abstract-context))
     (declare (ignore context))
     nil))
 
@@ -143,7 +130,7 @@ etc. for this context."))
   (:documentation
    "Returns an instance of EMPTY-PROGRAM-TERM for CONTEXT that might be interned.")
 
-  (:method ((context compilation-context))
+  (:method ((context abstract-context))
     (cond ((next-method-p)
            (call-next-method))
           (t
@@ -154,7 +141,7 @@ etc. for this context."))
   (:documentation
    "Returns an instance of NO-OPERATION-TERM for CONTEXT that might be interned.")
 
-  (:method ((context compilation-context))
+  (:method ((context abstract-context))
     (cond ((next-method-p)
            (call-next-method))
           (t
@@ -165,7 +152,7 @@ etc. for this context."))
 ;;; ---------------------------------------
 
 ;;; The definition of a primitive action is provided by instances of
-;;; PRIMITIVE-ACTION-DEFINITION.
+;;; PRIMITIVE-ACTION.
 
 (defgeneric primitive-actions (context)
   (:documentation
@@ -174,6 +161,14 @@ etc. for this context."))
 
 ;;; TODO: See (setf known-operators).
 (defgeneric (setf primitive-actions) (new-value context))
+
+;;; Methods for Obtaining Sorts
+;;; ---------------------------
+
+(defgeneric sorts (context)
+  (:documentation
+   "A hash table mapping sort names to sorts for CONTEXT."))
+
 
 ;;; Operator and Context Mixins
 ;;; ===========================
