@@ -7,31 +7,29 @@
 
 (in-package :common-lisp-user)
 
+;;; TODO: These exports are out of date.  Update the export lists and
+;;; sanitize the package structure.
+
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defvar *action-theory-utilities-exports*
     '(;; Names
       #:name-mixin #:required-name-mixin #:name
       ;; Errors
-      #:runtime-error
+      #:action-theory-error
       #:invalid-class
       #:incompatible-sort-declarations
-      ;; MOP
-      #:define-method
       ;; Lisp implementation
       #:*features-for-lisp-types*
       #:feature-for-lisp-type
       ;; General utilities
       #:unquote
-      #:wrap-in-quote #:wrap-in-forall
+      #:wrap-in-quote #:wrap-in-forall #:wrap-in-exists
       #:sexpr-equal-p
       #:defglobal
       #:gethash*
       #:make-uuid #:make-uuid-symbol
-      ;; Three-valued logic
-      #:boolean3
-      #:and3 #:or3 #:not3
       ;; Macros
-      #:process-argument-arglist
+      #:extract-arguments-from-lambda-list
       #:defdelegate #:define-delegates
       #:define-interning-make-instance
       #:maybe-suppress-snark-output
@@ -57,22 +55,20 @@
       
       #:primitive-action-definition #:context
       #:action-class #:action-precondition
-      #:declare-primitive-action #:define-primitive-action
+      #:declare-primitive-action
       #:fluent-definition
-      #:fluent-class #:fluent-successor-state
+      #:fluent-class #:fluent-successor-state-axiom
       #:relational-fluent-definition
-      #:declare-relational-fluent #:define-relational-fluent
+      #:declare-relational-fluent
       #:functional-fluent-definition
-      #:declare-functional-fluent #:define-functional-fluent
+      #:declare-functional-fluent
       #:arguments-mixin #:arguments
       #:known-term #:is-known-term-p
       
       #:compilation-context
       #:declarations
-      #:declared-operator-sorts #:declare-operator-sort
       #:unique-terms #:add-unique-term
       #:lookup-functor #:lookup-variable #:lookup-number
-      #:known-operators #:default-known-operators
       #:primitive-actions #:default-primitive-action-names
       #:fluents
       #:the-empty-program-term #:the-no-operation-term
@@ -143,7 +139,7 @@
       #:keywords-mixin #:keywords
       #:local-context-mixin
       #:unique-term-mixin
-      #:declared-sort #:successor-state
+      #:declared-sort #:successor-state-axiom
       #:named-declaration-term
       #:sort-declaration-term
       #:subsort-declaration-term #:supersort
@@ -219,7 +215,7 @@
       
       #:poss
       
-      #:define-primitive-action #:defaction #:defprimitive
+      #:defaction #:defprimitive
       #:primitive-action #:primact
       #:define-procedure #:defprocedure #:defproc
       #:procedure #:proc

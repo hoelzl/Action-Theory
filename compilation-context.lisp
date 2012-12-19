@@ -6,7 +6,7 @@
 ;;; in the root directory for further information.
 
 (in-package #:action-theory)
-#+debug-terms
+#+debug-action-theory
 (declaim (optimize (debug 3) (space 1) (speed 0) (compilation-speed 0)))
 
 ;;; Forward Declarations from the Parser
@@ -25,13 +25,14 @@
 ;;; Compilation Context
 ;;; ===================
 
-;;; A compilation context encapsulates the information needed by the
-;;; compiler.
+;;; A compilation context encapsulates the information needed to parse
+;;; terms with nested quantification interspersed with sort
+;;; declarations.
 
 (defclass compilation-context ()
   ()
   (:documentation
-   "Context needed by the compiler."))
+   "Context needed to parse terms with nested scopes."))
 
 (defgeneric enclosing-context (context)
   (:documentation
@@ -45,10 +46,10 @@
   (:documentation
    "Return a table that contains a list of constants for each sort."))
 
-(defgeneric declare-constant-sort (constant context)
+(defgeneric declare-sort-for-constant (constant context)
   (:documentation
-   "Declare the sort for CONSTANT in CONTEXT according to its declaration.  If
-   the sort is is NIL then don't add a declaration."))
+   "Declare the sort for CONSTANT in CONTEXT.  If the sort is is NIL
+   then don't add a declaration."))
 
 (defgeneric constants-for-sort (sort context)
   (:documentation
@@ -145,7 +146,7 @@ etc. for this context."))
 (defgeneric (setf primitive-actions) (new-value context))
 
 (define-condition no-definition-for-primitive-action
-    (runtime-error)
+    (action-theory-error)
   ((name :initarg :name)
    (context :initarg :context))
   (:report (lambda (condition stream)

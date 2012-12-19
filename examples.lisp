@@ -6,7 +6,7 @@
 ;;; in the root directory for further information.
 
 (in-package #:terms-user)
-#+debug-terms
+#+debug-action-theory
 (declaim (optimize (debug 3) (space 1) (speed 0) (compilation-speed 0)))
 
 (defun set-up-ewsc-theory ()

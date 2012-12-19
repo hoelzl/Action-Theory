@@ -190,9 +190,6 @@
     (5am:is (= arity (length (arguments parsed-term))))
     (5am:is (typep (first (arguments parsed-term)) 'variable-term))))
 
-(define-primitive-action 'foo '(t t))
-(define-primitive-action 'bar '(t))
-
 (5am:test (test-parse-into-term-representation-04
            :compile-at :definition-time)
   (let ((cc (make-instance 'compilation-unit)))
@@ -348,9 +345,6 @@
         (5am:is (eql 'foo (operator foo)))
         (5am:is (typep g 'unknown-general-application-term))
         (5am:is (eql 'g (operator g)))))))
-
-(define-functional-fluent 'robot-position '(position robot))
-(define-relational-fluent 'holds-item '(robot))
 
 (5am:test (test-parse-into-term-representation-16
            :compile-at :definition-time)

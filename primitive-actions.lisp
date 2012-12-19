@@ -6,7 +6,7 @@
 ;;; in the root directory for further information.
 
 (in-package #:action-theory)
-#+debug-terms
+#+debug-action-theory
 (declaim (optimize (debug 3) (space 1) (speed 0) (compilation-speed 0)))
 
 ;;; Primitive Action Definitions
@@ -27,11 +27,7 @@ NEW-VALUE.")
     (setf (gethash action-name (primitive-actions context)) new-value)))
 
 (defclass primitive-action-definition (operator-mixin context-mixin)
-  ((action-class
-    :accessor action-class :initarg :class
-    :initform (required-argument :class)
-    :documentation "The class of this primitive action.")
-   (action-precondition
+  ((action-precondition
     :reader action-precondition :initarg :precondition
     :initform nil
     :documentation "The precondition for this action.")
@@ -60,32 +56,6 @@ NEW-VALUE.")
 primitive-action definition for OPERATOR in CONTEXT.")
   (:method ((operator symbol) (context compilation-context)
             &optional (class-name (symbolicate operator '#:-term)))
-    (cerror "Continue anyway."
-            "Declaring undefined primitive action.")
-    (setf (primitive-action-definition operator context)
-          (make-instance 'primitive-action-definition
-            :operator operator :class class-name :context context))))
-
-(defun define-primitive-action (operator signature
-                                &key (class-name  (symbolicate operator '#:-term))
-                                     precondition)
-  (c2mop:ensure-class class-name :direct-superclasses '(primitive-action-term))
-  (define-method 'operator
-    :specializers (list (find-class class-name))
-    :lambda-list '(term)
-    :body `(lambda (term)
-             (declare (ignore term))
-             ',operator))
-  (define-method 'declare-primitive-action
-    :specializers (list (c2mop:intern-eql-specializer operator)
-                        (find-class 'compilation-context))
-    :lambda-list `(operator context &optional (class-name ',class-name))
-    :body `(lambda (operator context &optional (class-name ',class-name))
-             (setf (primitive-action-definition operator context)
-                   (make-instance 'primitive-action-definition
-                     :operator ',operator
-                     :signature ',signature
-                     :class class-name
-                     :precondition ',precondition
-                     :context context)))))
+    (make-instance 'primitive-action-definition
+      :operator operator :class class-name :context context)))
 

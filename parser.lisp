@@ -6,7 +6,7 @@
 ;;; in the root directory for further information.
 
 (in-package #:action-theory)
-#+debug-terms
+#+debug-action-theory
 (declaim (optimize (debug 3) (space 1) (speed 0) (compilation-speed 0)))
 
 (defgeneric starts-with-question-mark-p (name)
@@ -35,7 +35,7 @@
     (add-unique-term term context))
 
   (:method ((term constant-declaration-term) context)
-    (declare-constant-sort term context))
+    (declare-sort-for-constant term context))
 
   ;; TODO: We might want to do something along the following lines.  For now
   ;; we use a simple implementation that always calls DEFINE-PRIMITIVE-ACTION.
@@ -66,27 +66,18 @@
     (declare-operator-sort (name declaration)
                            (declared-sort declaration context)
                            context)
-    (apply #'define-primitive-action (name declaration)
-           (signature declaration)
-           (keywords declaration))
     (declare-primitive-action (name declaration) context))
 
   (:method ((declaration functional-fluent-declaration-term) context)
     (declare-operator-sort (name declaration)
                            (declared-sort declaration context)
                            context)
-    (apply #'define-functional-fluent (name declaration)
-           (signature declaration)
-           (keywords declaration))
     (declare-functional-fluent (name declaration) context))
 
   (:method ((declaration relational-fluent-declaration-term) context)
     (declare-operator-sort (name declaration)
                            (declared-sort declaration context)
                            context)
-    (apply #'define-relational-fluent (name declaration)
-           (signature declaration)
-           (keywords declaration))
     (declare-relational-fluent (name declaration) context)))
 
 

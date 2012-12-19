@@ -6,7 +6,7 @@
 ;;; in the root directory for further information.
 
 (in-package #:action-theory)
-#+debug-terms
+#+debug-action-theory
 (declaim (optimize (debug 3) (space 1) (speed 0) (compilation-speed 0)))
 
 
@@ -115,7 +115,7 @@
     (if *suppress-interpretation-errors*
         (handler-case
             (recurse interpreter term situation)
-          (runtime-error (condition)
+          (action-theory-error (condition)
             (values nil
                     (or error-value (class-name (class-of condition))))))
         (recurse interpreter term situation))))

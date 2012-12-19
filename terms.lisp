@@ -6,7 +6,7 @@
 ;;; in the root directory for further information.
 
 (in-package #:action-theory)
-#+debug-terms
+#+debug-action-theory
 (declaim (optimize (debug 3) (space 1) (speed 0) (compilation-speed 0)))
 
 ;;; Local Context Mixin
@@ -51,11 +51,11 @@
   (:documentation
    "Sets the declared sort of TERM in CONTEXT to SORT."))
 
-(defgeneric successor-state (term)
+(defgeneric successor-state-axiom (term)
   (:documentation
    "Returns the successor state axiom of TERM, or NIL if none exists.")
   (:method ((term keywords-mixin))
-    (getf (keywords term) :successor-state)))
+    (getf (keywords term) :successor-state-axiom)))
 
 ;;; Unique Terms
 ;;; ============
@@ -627,8 +627,6 @@ or :ARG3 init-keywords is also provided."
   (let ((definition (lookup-primitive-action (operator term) (context term))))
     (action-precondition definition)))
 
-(define-primitive-action 'no-operation '())
-
 (defclass test-term (unary-term keywords-mixin multi-solution-mixin)
   ()
   (:documentation
@@ -890,7 +888,7 @@ or :ARG3 init-keywords is also provided."
 (defmethod operator ((term constant-declaration-term))
   'declare-constant)
 
-(defmethod declare-constant-sort ((constant constant-declaration-term) context)
+(defmethod declare-sort-for-constant ((constant constant-declaration-term) context)
     (let* ((keys (keywords constant))
            (sort (getf keys :sort)))
       (when sort
