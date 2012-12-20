@@ -292,7 +292,8 @@ the new context equals the one in which it was originally parsed."
                               (gethash operator (primitive-actions context) nil)))
                         (if primitive-action
                             (make-instance 'primitive-action-term
-                                           :context context :source exp)
+                                           :context context :source exp
+                                           :primitive-action primitive-action)
                             nil)))
                      ((let ((fluent
                               (gethash operator (fluents context) nil)))

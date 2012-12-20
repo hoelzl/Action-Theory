@@ -55,21 +55,20 @@
   (:documentation
    "The definition of a primitive action."))
 
+(defmethod operator ((action primitive-action))
+  (first (prototype action)))
+
 (defmethod initialize-instance :after
-    ((self primitive-action) &key context operator precondition prototype)
+    ((self primitive-action) &key context prototype precondition)
   (assert context (context)
           "Cannot create a primitive action definition without context.")
-  (setf (lookup-primitive-action operator context) self)
+  (setf (lookup-primitive-action (operator self) context) self)
   (when precondition
     (let* ((new-context (nested-context-with-prototype-variables
                          context prototype))
            (precondition-term (parse-into-term-representation
                                precondition new-context)))
       (setf (slot-value self 'precondition) precondition-term))))
-
-
-(defmethod operator ((action primitive-action))
-  (first (prototype action)))
 
 (defmethod lookup-primitive-action
     ((definition primitive-action) context &optional default)

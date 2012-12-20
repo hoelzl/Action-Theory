@@ -576,7 +576,8 @@ or :ARG3 init-keywords is also provided."
     t))
 
 (defclass primitive-action-term (known-general-application-term)
-  ()
+  ((primitive-action :accessor primitive-action
+                     :initarg :primitive-action))
   (:documentation
    "A term describing the execution of a primitive action."))
 
@@ -592,8 +593,7 @@ or :ARG3 init-keywords is also provided."
     (precondition definition)))
 
 (defmethod operator ((term primitive-action-term))
-  (declare (ignore term))
-  :unknown-primitive-action-term)
+  (operator (primitive-action term)))
 
 (defclass test-term (unary-term keywords-mixin)
   ()

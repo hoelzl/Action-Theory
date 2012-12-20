@@ -5,75 +5,78 @@
 ;;; This file is licensed under the MIT license; see the file LICENSE
 ;;; in the root directory for further information.
 
-(in-package #:odysseus)
-#+debug-odysseus
+(in-package #:action-theory-test)
+#+debug-action-theory
 (declaim (optimize (debug 3) (space 1) (speed 0) (compilation-speed 0)))
 
 ;;; Testing
 ;;; =======
 
-(unless (find-test 'odysseus-suite :otherwise nil)
-  (defsuite (odysseus-suite
+(eval-when (:compile-toplevel :load-toplevel :execute)
+
+(unless (find-test 'action-theory-suite :otherwise nil)
+  (defsuite (action-theory-suite
              :documentation
-             "The suite containing all tests for Odysseus.")))
+             "The suite containing all tests for Action-Theory.")))
 
-(unless (find-test 'odysseus-utilities-suite :otherwise nil)
-  (defsuite (odysseus-utilities-suite
+(unless (find-test 'action-theory-utilities-suite :otherwise nil)
+  (defsuite (action-theory-utilities-suite
              :documentation "Tests for utilities."
-             :in odysseus-suite)))
+             :in action-theory-suite)))
 
-(unless (find-test 'odysseus-macro-suite :otherwise nil)
-  (defsuite (odysseus-macro-suite
+(unless (find-test 'action-theory-macro-suite :otherwise nil)
+  (defsuite (action-theory-macro-suite
              :documentation "Tests for macros."
-             :in odysseus-suite)))
+             :in action-theory-suite)))
       
-(unless (find-test 'odysseus-syntax-suite :otherwise nil)
-  (defsuite (odysseus-syntax-suite
+(unless (find-test 'action-theory-syntax-suite :otherwise nil)
+  (defsuite (action-theory-syntax-suite
              :documentation "Tests for the syntax representation."
-             :in odysseus-suite)))
+             :in action-theory-suite)))
       
-(unless (find-test 'odysseus-parser-suite :otherwise nil)
-  (defsuite (odysseus-parser-suite
+(unless (find-test 'action-theory-parser-suite :otherwise nil)
+  (defsuite (action-theory-parser-suite
              :documentation "Tests for the parser."
-             :in odysseus-suite)))
+             :in action-theory-suite)))
       
-(unless (find-test 'odysseus-situation-suite :otherwise nil)
-  (defsuite (odysseus-situation-suite
+(unless (find-test 'action-theory-situation-suite :otherwise nil)
+  (defsuite (action-theory-situation-suite
              :documentation "Tests for the situations."
-             :in odysseus-suite)))
+             :in action-theory-suite)))
       
-(unless (find-test 'odysseus-snark-suite :otherwise nil)
-  (defsuite (odysseus-snark-suite
+(unless (find-test 'action-theory-snark-suite :otherwise nil)
+  (defsuite (action-theory-snark-suite
              :documentation "Tests for the Snark interface."
-             :in odysseus-suite)))
+             :in action-theory-suite)))
       
-(unless (find-test 'odysseus-substitution-suite :otherwise nil)
-  (defsuite (odysseus-substitution-suite
+(unless (find-test 'action-theory-substitution-suite :otherwise nil)
+  (defsuite (action-theory-substitution-suite
              :documentation "Tests for substitutions."
-             :in odysseus-suite)))
+             :in action-theory-suite)))
       
-(unless (find-test 'odysseus-continuation-suite :otherwise nil)
-  (defsuite (odysseus-continuation-suite
+(unless (find-test 'action-theory-continuation-suite :otherwise nil)
+  (defsuite (action-theory-continuation-suite
              :documentation "Tests for continuations."
-             :in odysseus-suite)))
+             :in action-theory-suite)))
       
-(unless (find-test 'odysseus-world-suite :otherwise nil)
-  (defsuite (odysseus-world-suite
+(unless (find-test 'action-theory-world-suite :otherwise nil)
+  (defsuite (action-theory-world-suite
              :documentation "Tests for the worlds abstraction."
-             :in odysseus-suite)))
+             :in action-theory-suite)))
       
-(unless (find-test 'odysseus-interpreter-suite :otherwise nil)
-  (defsuite (odysseus-interpreter-suite
+(unless (find-test 'action-theory-interpreter-suite :otherwise nil)
+  (defsuite (action-theory-interpreter-suite
              :documentation "Tests for the interpreter."
-             :in odysseus-suite)))
+             :in action-theory-suite)))
       
-(unless (find-test 'odysseus-compiler-suite :otherwise nil)
-  (defsuite (odysseus-compiler-suite
+(unless (find-test 'action-theory-compiler-suite :otherwise nil)
+  (defsuite (action-theory-compiler-suite
              :documentation "Tests for the compiler."
-             :in odysseus-suite)))
+             :in action-theory-suite)))
       
-(unless (find-test 'odysseus-builtins-suite :otherwise nil)
-  (defsuite (odysseus-builtins-suite
+(unless (find-test 'action-theory-builtins-suite :otherwise nil)
+  (defsuite (action-theory-builtins-suite
              :documentation "Tests for the built-in predicates."
-             :in odysseus-suite)))
+             :in action-theory-suite)))
 
+) ; eval-when
