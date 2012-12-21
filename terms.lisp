@@ -44,17 +44,14 @@
             "No declared sort for ~:W." term)
     '())
   (:method ((term keywords-mixin) context)
-    (lookup-sort (getf (keywords term) :sort) context)))
+    (lookup (getf (keywords term) :sort) 'logical-sort context)))
 
 (defgeneric (setf declared-sort) (sort term context)
   (:documentation
    "Sets the declared sort of TERM in CONTEXT to SORT."))
 
-(defgeneric successor-state-axiom (term)
-  (:documentation
-   "Returns the successor state axiom of TERM, or NIL if none exists.")
-  (:method ((term keywords-mixin))
-    (getf (keywords term) :successor-state-axiom)))
+(defmethod successor-state-axiom ((term keywords-mixin))
+  (getf (keywords term) :successor-state-axiom))
 
 ;;; Unique Terms
 ;;; ============
@@ -333,6 +330,9 @@ structure."))
   ()
   (:documentation "A known term that is also an application term."))
 
+(defmethod print-object ((term known-application-term) stream)
+  (print-unreadable-object (term stream :type t :identity t)))
+
 (defclass unary-term (known-application-term)
   ((argument :accessor argument :initarg :argument :initform nil))
   (:documentation
@@ -460,15 +460,6 @@ or :ARG3 init-keywords is also provided."
 ;;; Logical Compounds
 ;;; =================
 
-(defclass fluent-term (known-general-application-term)
-  ((fluent :accessor fluent :initarg :fluent
-           :initform (required-argument :fluent)))
-  (:documentation
-   "A fluent applied to arguments"))
-
-(defmethod operator ((term fluent-term))
-  (operator (fluent term)))
-
 (defclass conjunction-term (known-general-application-term)
   ()
   (:documentation
@@ -565,8 +556,9 @@ or :ARG3 init-keywords is also provided."
       foreach        universal-quantification-term
       each           universal-quantification-term
       forall         universal-quantification-term
-      exists          existential-quantification-term
-      exist         existential-quantification-term))
+      exists         existential-quantification-term
+      exist          existential-quantification-term
+      cases          cases-term))
 
 
 ;;; Programming-Language Terms
@@ -588,6 +580,15 @@ or :ARG3 init-keywords is also provided."
   (:method ((term empty-program-term))
     t))
 
+(defclass fluent-term (known-general-application-term)
+  ((fluent :accessor fluent :initarg :fluent
+           :initform (required-argument :fluent)))
+  (:documentation
+   "A fluent applied to arguments"))
+
+(defmethod operator ((term fluent-term))
+  (operator (fluent term)))
+
 (defclass primitive-action-term (known-general-application-term)
   ((primitive-action :accessor primitive-action
                      :initarg :primitive-action))
@@ -602,7 +603,7 @@ or :ARG3 init-keywords is also provided."
     :context (context term)))
 
 (defmethod precondition ((term primitive-action-term))
-  (let ((definition (lookup-primitive-action (operator term) (context term))))
+  (let ((definition (lookup (operator term) 'primitive-action (context term))))
     (precondition definition)))
 
 (defmethod operator ((term primitive-action-term))

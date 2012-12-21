@@ -19,7 +19,6 @@
     (declare (ignore thing))
     nil))
 
-
 ;;; Names
 ;;; =====
 
@@ -36,6 +35,7 @@
     :documentation "The name of the entity that inherits this mixin."))
   (:documentation
    "Mixin inherited by all classes that require a name."))
+
 
 ;;; Errors
 ;;; ======
@@ -67,6 +67,50 @@
              (with-slots (thing sort-1 sort-2) condition
                (format stream "Incompatible sort declarations for ~W: ~W, ~W."
                        thing sort-1 sort-2)))))
+
+;;; Lookup
+;;; ======
+
+(defgeneric lookup-table-accessor-for-type (type)
+  (:documentation
+   "Return a function that can access the table for instances of TYPE in a
+   context.")
+  (:method (type)
+    (error "No lookup-table accessor for ~A." type)))
+
+
+(define-condition no-declaration-for-domain-element
+    (action-theory-error)
+  ((name :initarg :name)
+   (type :initarg :type)
+   (context :initarg :context))
+  (:report (lambda (condition stream)
+             (with-slots (name type context) condition 
+               (format stream "No domain element ~A of type ~A in context ~:W"
+                       name type context)))))
+
+
+
+(defgeneric lookup (name type context &optional default)
+  (:documentation
+   "Returns the definition of NAME of type TYPE in CONTEXT.  Signals an error
+   if no primitive action exists and no DEFAULT is supplied.")
+  (:method ((name symbol) type context
+            &optional (default nil default-supplied-p))
+    (or (gethash name
+                 (funcall (lookup-table-accessor-for-type type) context)
+                 nil)
+        (if default-supplied-p
+            default
+            (cerror "Return NIL."
+                    'no-declaration-for-domain-element
+                    :name name :type type :context context)))))
+
+(defun (setf lookup) (new-value name type context)
+  "Set the definition of NAME for TYPE in CONTEXT to NEW-VALUE."
+  (setf (gethash name
+                 (funcall (lookup-table-accessor-for-type type) context))
+        new-value))
 
 ;;; Information about the Lisp version
 ;;; ==================================

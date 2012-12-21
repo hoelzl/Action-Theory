@@ -101,6 +101,10 @@
     :accessor primitive-actions :initarg :primitive-actions
     :initform (make-hash-table)
     :documentation "Hash table mapping each primitive action to its definition.")
+   (natures-choices-table
+    :accessor natures-choices-table :initarg :natures-choices-table
+    :initform (make-hash-table)
+    :documentation "Hash table mapping each nature's choice to its definition.")
    (fluents
     :accessor fluents :initarg :fluents
     :initform (make-hash-table)
@@ -257,6 +261,7 @@
   (primitive-actions (context))
   ((setf primitive-actions) (new-value context)
                             :new-value-type list)
+  (natures-choices-table (context))
   (sorts (context))
   ((setf sorts) (new-value context))
   (fluents (context))

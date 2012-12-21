@@ -169,6 +169,14 @@ etc. for this context."))
 ;;; TODO: See (setf known-operators).
 (defgeneric (setf primitive-actions) (new-value context))
 
+;;; Methods for Obtaining Nature's Choices
+;;; --------------------------------------
+
+(defgeneric natures-choices-table (context)
+  (:documentation
+   "A hash table containing the description of each nature's choice known in
+   CONTEXT."))
+
 ;;; Methods for Obtaining Sorts
 ;;; ---------------------------
 
@@ -183,6 +191,7 @@ etc. for this context."))
 (defgeneric fluents (context)
   (:documentation
    "A hash table containing the description of every fluent in CONTEXT."))
+
 
 ;;; TODO: see (setf known-operators)
 (defgeneric (setf fluents) (new-value context))

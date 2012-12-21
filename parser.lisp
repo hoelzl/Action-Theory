@@ -118,6 +118,17 @@
                   (parse-into-term-representation subexp context))
                 arguments)))
 
+(defmethod parse-arguments-for-term ((term cases-term) arguments context)
+  (setf (sdp-cases term)
+        (mapcar (lambda (spec)
+                  (destructuring-bind (&key case value alias) spec
+                    (make-instance 'sdp-case
+                      :case-term (parse-into-term-representation
+                                  case context)
+                      :value value
+                      :alias alias)))
+                arguments)))
+
 (defgeneric parse-binding (term binding-list context)
   (:documentation
    "Parse the BINDING-LIST for a single binding of TERM in CONTEXT.

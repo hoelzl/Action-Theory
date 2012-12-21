@@ -49,11 +49,10 @@
       #:context
       #:primitive-action
       #:precondition #:natures-choices
-      #:lookup-primitive-action
+      #:lookup
       #:declare-primitive-action
       #:fluent
       #:successor-state-axiom
-      #:lookup-fluent
       #:declare-fluent
       #:is-relational-fluent-p
       #:is-functional-fluent-p

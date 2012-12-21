@@ -16,31 +16,12 @@
 ;;; The definition of fluents is provided by (indirect) instances of
 ;;; FLUENT.
 
-(define-condition no-declaration-for-fluent (action-theory-error)
-  ((name :initarg :name)
-   (context :initarg :context))
-  (:report (lambda (condition stream)
-             (with-slots (name context) condition 
-               (format stream "No fluent ~A in context ~:W"
-                       name context)))))
+(defmethod lookup-table-accessor-for-type ((type (eql 'fluent)))
+  'fluents)
 
-(defgeneric lookup-fluent (fluent-name context &optional default)
+(defgeneric successor-state-axiom (term)
   (:documentation
-   "Returns the definition of the fluent FLUENT-NAME in CONTEXT.")
-  (:method ((fluent-name symbol) (context abstract-context)
-            &optional (default nil default-supplied-p))
-    (or (gethash fluent-name (fluents context) nil)
-        (if default-supplied-p
-            default
-            (cerror "Return NIL."
-                    'no-declaration-for-fluent
-                    :name fluent-name :context context)))))
-
-(defgeneric (setf lookup-fluent) (new-value fluent-name context)
-  (:documentation
-   "Set the definition for fluent FLUENT-NAME in CONTEXT to NEW-VALUE.")
-  (:method (new-value (fluent-name symbol) context)
-    (setf (gethash fluent-name (fluents context)) new-value)))
+   "Returns the successor state axiom of TERM, or NIL if none exists."))
 
 (defclass fluent (context-mixin prototype-mixin)
   ((successor-state-axiom
@@ -57,22 +38,18 @@
                         context)
   (assert context (context)
           "Cannot create a fluent definition without context.")
-  (setf (lookup-fluent (operator self) context) self)
+  (setf (lookup (operator self) 'fluent context) self)
   (setf (result-sort self)
         (make-instance 'logical-sort
           :name sort :context context))
   (when (and successor-state-axiom
-             (not (typep successor-state-axiom 'term)))
+             (not (termp successor-state-axiom)))
     (let* ((new-context (nested-context-with-prototype-variables
                          context prototype))
            (successor-state-term (parse-into-term-representation
                                   successor-state-axiom new-context)))
       (setf (slot-value self 'successor-state-axiom)
             successor-state-term))))
-
-(defmethod lookup-fluent ((fluent fluent) context &optional default)
-  (declare (ignore context default))
-  fluent)
 
 (defun declare-fluent (&key prototype successor-state-axiom
                             (sort 'boolean)
