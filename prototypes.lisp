@@ -16,6 +16,9 @@
     :initform (required-argument :prototype)
     :documentation "The prototype of this term in the form (NAME . ARGS).")))
 
+(defmethod operator ((self prototype-mixin))
+  (first (prototype self)))
+
 (defun nested-context-with-prototype-variables (context prototype)
   (let ((new-context (make-instance 'local-context
 				    :enclosing-context context))

@@ -9,6 +9,17 @@
 #+debug-action-theory
 (declaim (optimize (debug 3) (space 1) (speed 0) (compilation-speed 0)))
 
+;;; Forward Declarations
+;;; ====================
+
+(defgeneric termp (thing)
+  (:documentation 
+   "Return true if THING is a term.")
+  (:method (thing)
+    (declare (ignore thing))
+    nil))
+
+
 ;;; Names
 ;;; =====
 

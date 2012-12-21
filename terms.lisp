@@ -86,6 +86,10 @@
   ;; Simply ignore the intern keyword.
   (declare (ignore slot-names intern source)))
 
+(defmethod termp ((term term))
+  (declare (ignore term))
+  t)
+
 (defgeneric source (term)
   (:documentation
     "The source form from which the term was derived, or NIL if no source is
@@ -153,10 +157,10 @@
 
 (defun make-unique-variable-name (var-name sort-name context)
   (declare (ignore context))
-  (make-symbol (format nil "?~:[VAR~;~:*~A~]~A.~A"
-                       var-name
-                       (incf *unique-variable-counter*)
-                       sort-name)))
+  (intern (format nil "?~:[VAR~;~:*~A~]~A.~A"
+                  var-name
+                  (incf *unique-variable-counter*)
+                  sort-name)))
 
 (defmethod declared-sort ((var variable-term) (context abstract-context))
   (declare (ignore context))
@@ -455,6 +459,15 @@ or :ARG3 init-keywords is also provided."
 
 ;;; Logical Compounds
 ;;; =================
+
+(defclass fluent-term (known-general-application-term)
+  ((fluent :accessor fluent :initarg :fluent
+           :initform (required-argument :fluent)))
+  (:documentation
+   "A fluent applied to arguments"))
+
+(defmethod operator ((term fluent-term))
+  (operator (fluent term)))
 
 (defclass conjunction-term (known-general-application-term)
   ()

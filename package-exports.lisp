@@ -46,15 +46,17 @@
   
   (defvar *action-theory-context-exports*
     '(;; Forward declaration
-      #:lookup-primitive-action #:context
-      #:action-class #:precondition
+      #:context
+      #:primitive-action
+      #:precondition #:natures-choices
+      #:lookup-primitive-action
       #:declare-primitive-action
+      #:fluent
+      #:successor-state-axiom
       #:lookup-fluent
-      #:fluent-class #:successor-state-axiom
-      #:relational-fluent
-      #:declare-relational-fluent #:define-relational-fluent
-      #:functional-fluent
-      #:declare-functional-fluent #:define-functional-fluent
+      #:declare-fluent
+      #:is-relational-fluent-p
+      #:is-functional-fluent-p
       #:arguments-mixin #:arguments
       #:known-term #:is-known-term-p
       

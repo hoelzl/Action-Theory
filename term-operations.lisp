@@ -24,6 +24,10 @@
     (declare (ignore as-list include-global))
     (to-sexpr-maybe-error term))
 
+  (:method ((sort logical-sort) &key as-list include-global)
+    (declare (ignore as-list include-global))
+    (name sort))
+
   (:method ((term term) &key as-list include-global)
     (declare (ignore as-list include-global))
     (to-sexpr-maybe-error :unreadable-term))

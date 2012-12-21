@@ -11,7 +11,7 @@
 (declaim (optimize (debug 3) (space 1) (speed 0) (compilation-speed 0)))
 
 
-(define-condition no-definition-for-sort
+(define-condition no-declaration-for-sort
     (action-theory-error)
   ((name :initarg :name)
    (context :initarg :context))
@@ -31,7 +31,7 @@
 	(if default-supplied-p
 	    default
 	    (cerror "Return NIL."
-		    'no-definition-for-sort
+		    'no-declaration-for-sort
 		    :name sort-name :context context)))))
 
 (defgeneric (setf lookup-sort) (new-value sort-name context)
@@ -41,19 +41,23 @@
     (setf (gethash sort-name (sorts context)) new-value)))
     
 
-(defclass sort (name-mixin context-mixin)
+(defclass logical-sort (name-mixin context-mixin)
   ()
   (:documentation
    "Representation of a logical sort."))
 
-(defmethod initialize-instance :after ((self sort) &key name context)
+(defmethod initialize-instance :after ((self logical-sort) &key name context)
   (assert name (name)
-	  "Cannot create an unnambee sort.")
+	  "Cannot create an unnamed sort.")
   (assert context (context)
 	  "Cannot create a sort without context.")
   (setf (lookup-sort name context) self))
 
 (defun declare-sort (&key name (context *default-context*))
-  (make-instance 'sort
+  (make-instance 'logical-sort
 		 :name name
 		 :context context))
+
+(defmethod print-object ((self logical-sort) stream)
+  (print-unreadable-object (self stream :type t :identity t)
+    (format stream "~A" (name self))))

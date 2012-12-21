@@ -322,17 +322,21 @@
 
 (deftest test-parse-into-term-representation-16 ()
   (let ((cc (make-instance 'compilation-unit)))
-    (declare-functional-fluent 'holds-item cc)
+    (declare-fluent :prototype '(holds-item robot item)
+                    :sort 'boolean
+                    :context cc)
     (let ((ff (parse-into-term-representation '(holds-item ?robot ?item) cc)))
-      (is (typep ff 'holds-item-term))
+      (is (typep ff 'fluent-term))
       (is (typep ff 'known-general-application-term))
       (is (= 2 (length (arguments ff)))))))
 
 (deftest test-parse-into-term-representation-17 ()
   (let ((cc (make-instance 'compilation-unit)))
-    (declare-relational-fluent 'robot-position cc)
+    (declare-fluent :prototype '(robot-position robot)
+                    :sort 'boolean
+                    :context cc)
     (let ((rf (parse-into-term-representation '(robot-position ?robot) cc)))
-      (is (typep rf 'robot-position-term))
+      (is (typep rf 'fluent-term))
       (is (typep rf 'known-general-application-term))
       (is (= 1 (length (arguments rf)))))))
 

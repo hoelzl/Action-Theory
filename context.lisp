@@ -177,6 +177,17 @@ etc. for this context."))
    "A hash table mapping sort names to sorts for CONTEXT."))
 
 
+;;; Methods for Obtaining Fluents
+;;; -----------------------------
+
+(defgeneric fluents (context)
+  (:documentation
+   "A hash table containing the description of every fluent in CONTEXT."))
+
+;;; TODO: see (setf known-operators)
+(defgeneric (setf fluents) (new-value context))
+
+
 ;;; Operator and Context Mixins
 ;;; ===========================
 
@@ -201,3 +212,4 @@ etc. for this context."))
     :documentation "The context to which this object belongs."))
   (:documentation "Mixin that provides a CONTEXT slot."))
 
+(defvar *default-context*)

@@ -16,19 +16,25 @@
 ;;; The definition of fluents is provided by (indirect) instances of
 ;;; FLUENT.
 
-(defgeneric fluents (context)
-  (:documentation
-   "A hash table containing the description of every fluent in CONTEXT."))
-
-;;; TODO: see (setf known-operators)
-(defgeneric (setf fluents) (new-value context))
+(define-condition no-declaration-for-fluent (action-theory-error)
+  ((name :initarg :name)
+   (context :initarg :context))
+  (:report (lambda (condition stream)
+             (with-slots (name context) condition 
+               (format stream "No fluent ~A in context ~:W"
+                       name context)))))
 
 (defgeneric lookup-fluent (fluent-name context &optional default)
   (:documentation
    "Returns the definition of the fluent FLUENT-NAME in CONTEXT.")
   (:method ((fluent-name symbol) (context abstract-context)
-            &optional (default nil))
-    (gethash fluent-name (fluents context) default)))
+            &optional (default nil default-supplied-p))
+    (or (gethash fluent-name (fluents context) nil)
+        (if default-supplied-p
+            default
+            (cerror "Return NIL."
+                    'no-declaration-for-fluent
+                    :name fluent-name :context context)))))
 
 (defgeneric (setf lookup-fluent) (new-value fluent-name context)
   (:documentation
@@ -36,22 +42,65 @@
   (:method (new-value (fluent-name symbol) context)
     (setf (gethash fluent-name (fluents context)) new-value)))
 
-(defclass fluent (operator-mixin context-mixin)
+(defclass fluent (context-mixin prototype-mixin)
   ((successor-state-axiom
     :accessor successor-state-axiom :initarg :successor-state-axiom
     :initform nil
-    :documentation "The successor state axiom for this fluent."))
+    :documentation "The successor state axiom for this fluent.")
+   (result-sort :accessor result-sort))
   (:documentation "The definition of a fluent."))
 
-
 (defmethod initialize-instance :after
-    ((self fluent) &key context operator successor-state-axiom)
+    ((self fluent) &key prototype
+                        sort
+                        successor-state-axiom
+                        context)
   (assert context (context)
           "Cannot create a fluent definition without context.")
-  (assert (and operator (symbolp operator)) (operator)
-          "Cannot create a fluent definition without operator.")
-  (setf (lookup-fluent operator context) self)
-  (when (and successor-state-axiom (consp successor-state-axiom))
-    (setf (slot-value self 'successor-state-axiom)
-          (parse-into-term-representation successor-state-axiom context))))
+  (setf (lookup-fluent (operator self) context) self)
+  (setf (result-sort self)
+        (make-instance 'logical-sort
+          :name sort :context context))
+  (when (and successor-state-axiom
+             (not (typep successor-state-axiom 'term)))
+    (let* ((new-context (nested-context-with-prototype-variables
+                         context prototype))
+           (successor-state-term (parse-into-term-representation
+                                  successor-state-axiom new-context)))
+      (setf (slot-value self 'successor-state-axiom)
+            successor-state-term))))
 
+(defmethod lookup-fluent ((fluent fluent) context &optional default)
+  (declare (ignore context default))
+  fluent)
+
+(defun declare-fluent (&key prototype successor-state-axiom
+                            (sort 'boolean)
+                            (context *default-context*))
+  "Create a new FLUENT and register it in context."
+  (make-instance 'fluent
+    :prototype prototype
+    :sort sort
+    :successor-state-axiom successor-state-axiom
+    :context context))
+
+(defmethod print-object ((self fluent) stream)
+  (print-unreadable-object (self stream :type t :identity t)
+    (format stream "~A" (operator self))))
+
+;;; TODO: Implement the following methods.  This requires us to have a more
+;;; complete implementation of sorts first.
+
+(defgeneric is-relational-fluent-p (thing)
+  (:documentation
+   "Returns true if THING is a relational fluent, false otherwise.")
+  (:method (thing)
+    (declare (ignore thing))
+    nil))
+
+(defgeneric is-functional-fluent-p (thing)
+  (:documentation
+   "Returns true if THING is a functional fluent, false otherwise.")
+  (:method (thing)
+    (declare (ignore thing))
+    nil))

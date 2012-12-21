@@ -22,6 +22,7 @@
 ;;; Handling of Declarations
 ;;; ========================
 
+#+(or)
 (defgeneric process-declaration-for-parsing (declaration context)
   (:documentation
    "Process a declaration so that the parser can use it for processing
@@ -147,6 +148,7 @@ argument list."
 arguments are passed, otherwise the name of TERM will not be set."
   (declare (ignore arguments))
   (vector-push-extend term (declarations context))
+  #+(or)
   (process-declaration-for-parsing term context))
 
 
@@ -240,6 +242,8 @@ the new context equals the one in which it was originally parsed."
           term context)
   term)
 
+;;; TODO: Add support for true and false.
+;;;
 (defmethod parse-into-term-representation ((exp symbol) (context abstract-context))
   "Parse a single symbol.
   If it is NIL or NULL return an empty program term.
@@ -299,7 +303,7 @@ the new context equals the one in which it was originally parsed."
                               (gethash operator (fluents context) nil)))
                         (if fluent
                             (make-instance 'fluent-term
-                                           :context context :source exp)
+                              :fluent fluent :context context :source exp)
                             nil)))
                      (t
                       (make-instance 'unknown-general-application-term

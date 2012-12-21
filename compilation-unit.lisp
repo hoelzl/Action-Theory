@@ -274,7 +274,8 @@
   (:documentation
    "The state of a top-level interpreter."))
 
-(defvar *default-context* (make-instance 'top-level-context))
+(unless (boundp '*default-context*)
+  (setf *default-context* (make-instance 'top-level-context)))
 
 
 ;;; Some utilities for interactive exploration
