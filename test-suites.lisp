@@ -39,6 +39,11 @@
              :documentation "Tests for the parser."
              :in action-theory-suite)))
       
+(unless (find-test 'action-theory-cases-suite :otherwise nil)
+  (defsuite (action-theory-cases-suite
+             :documentation "Tests for the cases-term."
+             :in action-theory-suite)))
+      
 (unless (find-test 'action-theory-situation-suite :otherwise nil)
   (defsuite (action-theory-situation-suite
              :documentation "Tests for the situations."

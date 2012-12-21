@@ -295,6 +295,13 @@
 (unless (boundp '*default-context*)
   (setf *default-context* (make-instance 'top-level-context)))
 
+(defgeneric top-level-context (context)
+  (:documentation
+   "Return the top-level context that encloses CONTEXT.")
+  (:method ((context top-level-context))
+    context)
+  (:method ((context local-context))
+    (top-level-context (enclosing-context context))))
 
 ;;; Some utilities for interactive exploration
 ;;; ==========================================

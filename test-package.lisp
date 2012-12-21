@@ -15,6 +15,7 @@
 	   #:action-theory-utilities-suite
 	   #:action-theory-macro-suite
 	   #:action-theory-syntax-suite
+	   #:action-theory-cases-suite
 	   #:action-theory-parser-suite
 	   #:action-theory-situation-suite
 	   #:action-theory-snark-suite

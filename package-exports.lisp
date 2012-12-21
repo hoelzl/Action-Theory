@@ -59,7 +59,21 @@
       #:is-functional-fluent-p
       #:arguments-mixin #:arguments
       #:known-term #:is-known-term-p
-      
+      #:natures-choice
+      #:declare-natures-choice
+
+      #:reward-function
+      #:reward-cases
+      #:declare-reward-function
+
+      #:sdp-case
+      #:case-term #:value #:alias
+      #:cases-term
+      #:sdp-cases
+      #:disjoin-cases #:sort-cases #:partition-cases
+      #:add-cases #:multiply-cases #:casemax
+      #:existentially-quantify-cases
+
       #:abstract-context
       #:declarations
       #:declared-operator-sorts #:declare-operator-sort
@@ -181,6 +195,7 @@
       #:implied-by #:is-implied-by
       #:iff #:equiv #:equivalent #:is-equivalent #:are-equivalent
       #:foreach #:each #:forall #:exist #:exists
+      #:cases
       
       "?"
       #:test #:holds #:holds?

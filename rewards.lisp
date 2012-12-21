@@ -31,8 +31,8 @@
   (print-unreadable-object (self stream :type t :identity t)
     (format stream "~A" (name self))))
 
-(defmethod declare-reward-function (&key name cases
-                                         (context *default-context*))
+(defun declare-reward-function (&key name cases
+                                     (context *default-context*))
   (make-instance 'reward-function
     :name name
     :cases cases

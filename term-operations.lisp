@@ -73,7 +73,7 @@
     (declare (ignore as-list))
     (list (operator term)
 	  (mapcar (lambda (var)
-                    (to-sexpr var :as-list t))
+                    (to-sexpr var :as-list nil))
                   (bound-variables term))
 	  (to-sexpr (argument term) :include-global include-global)))
 
@@ -81,7 +81,7 @@
     (declare (ignore as-list))
     (list (operator term)
 	  (mapcar (lambda (var)
-                    (to-sexpr var :as-list t :include-global t))
+                    (to-sexpr var :as-list nil :include-global t))
                   (bound-variables term))
 	  (to-sexpr (argument term) :include-global include-global)))
 

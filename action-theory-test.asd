@@ -17,6 +17,7 @@
   :components ((:file "test-package")
 	       (:file "test-suites")
 	       (:file "test-utilities")
+	       (:file "test-cases")
 	       (:file "test-terms")
 	       (:file "test-situation")
 	       (:file "test-parser")))
