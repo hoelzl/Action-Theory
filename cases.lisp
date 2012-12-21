@@ -10,6 +10,9 @@
 #+debug-action-theory
 (declaim (optimize (debug 3) (space 1) (speed 0) (compilation-speed 0)))
 
+;;; TODO: Replace names SDP-CASE and CASES-TERM with something more
+;;; meaningful.
+
 (defclass sdp-case ()
   ((case-term :accessor case-term :initarg :case-term)
    (value :accessor value :initarg :value)
@@ -37,6 +40,8 @@
 (defmethod operator ((term cases-term))
   'cases)
 
+;;; TODO: Improve printing of CASE-TERMs (introduce a logical block for each
+;;; SDP-CASE?).
 (defmethod print-object ((self cases-term) stream)
   (print-unreadable-object (self stream :type t)
     (format stream "~:W" (sdp-cases self))))

@@ -10,6 +10,9 @@
 #+debug-action-theory
 (declaim (optimize (debug 3) (space 1) (speed 0) (compilation-speed 0)))
 
+
+;;; TODO: Introduce terms for TRUE and FALSE.
+
 ;;; Local Context Mixin
 ;;; ===================
 

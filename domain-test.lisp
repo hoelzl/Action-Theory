@@ -96,3 +96,5 @@
   (existentially-quantify-cases *strange-cases*))
 (defparameter *partitioned-cases*
   (partition-cases *multiplied-cases*))
+(defparameter *casemaxed-cases*
+  (casemax *multiplied-cases*))
