@@ -14,7 +14,7 @@
 ;;; ===============================
 
 (defmethod lookup-table-accessor-for-type ((type (eql 'natures-choice)))
-  'natures-choices-table)
+  'natures-choice-table)
 
 (defclass natures-choice (context-mixin prototype-mixin)
   ((probabilities

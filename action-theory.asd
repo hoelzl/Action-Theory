@@ -23,6 +23,7 @@
 	       (:file "fluents")
 	       (:file "terms")
 	       (:file "cases")
+	       (:file "rewards")
 	       (:file "compilation-unit")
 	       (:file "situation")
 	       (:file "term-operations")

@@ -101,15 +101,26 @@
    (primitive-actions
     :accessor primitive-actions :initarg :primitive-actions
     :initform (make-hash-table)
-    :documentation "Hash table mapping each primitive action to its definition.")
-   (natures-choices-table
-    :accessor natures-choices-table :initarg :natures-choices-table
+    :documentation
+    "Hash table mapping the name of each primitive action to its corresponding
+    PRIMITIVE-ACTION object.")
+   (natures-choice-table
+    :accessor natures-choice-table :initarg :natures-choice-table
     :initform (make-hash-table)
-    :documentation "Hash table mapping each nature's choice to its definition.")
+    :documentation
+    "Hash table mapping the name of each nature's choice to its corresponding
+    NATURES-CHOICE object.")
+   (reward-function-table
+    :accessor reward-function-table :initarg :reward-function-table
+    :initform (make-hash-table)
+    :documentation
+    "Hash table mapping the name of each reward function to its corresponding
+    REWARD-FUNCTION object.")
    (fluents
     :accessor fluents :initarg :fluents
     :initform (make-hash-table)
-    :documentation "Hash table mapping each fluent to its definition.")
+    :documentation
+    "Hash table mapping the name of each fluent to its FLUENT object.")
    (variable-hash-table
     :accessor variable-hash-table :initarg :variable-hash-table
     :initform (make-hash-table)
@@ -262,7 +273,8 @@
   (primitive-actions (context))
   ((setf primitive-actions) (new-value context)
                             :new-value-type list)
-  (natures-choices-table (context))
+  (natures-choice-table (context))
+  (reward-function-table (context))
   (sorts (context))
   ((setf sorts) (new-value context))
   (fluents (context))

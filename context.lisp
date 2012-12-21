@@ -173,10 +173,18 @@ etc. for this context."))
 ;;; Methods for Obtaining Nature's Choices
 ;;; --------------------------------------
 
-(defgeneric natures-choices-table (context)
+(defgeneric natures-choice-table (context)
   (:documentation
    "A hash table containing the description of each nature's choice known in
    CONTEXT."))
+
+
+;;; Methods for Obtaining Reward Functions
+;;; --------------------------------------
+
+(defgeneric reward-function-table (context)
+  (:documentation
+   "A hash table mapping names of reward functions to their representations."))
 
 ;;; Methods for Obtaining Sorts
 ;;; ---------------------------

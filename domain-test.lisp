@@ -4,6 +4,8 @@
 (declare-sort :name 'city)
 (declare-sort :name 'truck)
 
+(declare-constant :name 'rome :sort 'city)
+
 (declare-natures-choice
  :prototype '(load-succeed box.box truck.truck)
  :probabilities '(cases (:case true :value 0.99)))
@@ -27,3 +29,13 @@
 			       (not (and (not (= city dest))
 				     (= action (drive-succeed truck dest))))))
 			  (= action (drive-succeed truck city))))
+
+(declare-reward-function
+ :name 'a-box-in-rome
+ :cases '(cases 
+	  (:case (exists (box.box)
+			 (box-in box rome))
+	    :value 1)
+	  (:case (not (exists (box.box)
+			      (box-in box rome)))
+	    :value 0)))
